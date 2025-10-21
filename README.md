@@ -35,7 +35,7 @@ Where:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [Your-Repo-URL]
+    git clone https://github.com/VoidFrog/ant-colony-simulation-via-cellular-automata.git
     cd ant-colony-simulation-via-cellular-automata
     ```
 
@@ -43,8 +43,8 @@ Where:
     ```bash
     python -m venv your_venv_name
     
-    .\ssd_venv\Scripts\activate  # On Windows
-    source ssd_venv/bin/activate  # On macOS/Linux
+    .\\your_venv_name\\Scripts\\activate  # On Windows
+    source your_venv_name/bin/activate  # On macOS/Linux
     ```
 
 3.  **Install the required libraries:**

@@ -8,6 +8,20 @@ This project is an agent-based simulation built in Python using the **MESA** fra
 
 The simulation is based on the **Mobile Cellular Automata (MCA)** model described in the 1996 paper by Blaine J. Cole and David Cheshire, which specifically studied the activity patterns of *Leptothorax allardycei* ants.
 
+## Model Description
+
+The model itself represents the inside of an ant colony in which the currently each cell of the space of the colony can be occupied by 1 ant, it’s neighbors are the 8 spaces surrounding the cell, also known as Moore neighborhood. The model’s goal is to emulate the creation of social phenotypes, of which two are differentiated: active and inactive, which are determined by each ant’s activity level.
+
+The activity level is determined based on two factors. The first, referred to as self-interaction which Is determined by a gain term determined by model by model basis and the current activity level of the ant. The second is the interaction term, determined by the sum of the multiplication of the interaction matrix and activity levels of all neighboring ants.
+
+The interaction matrix is a 2x2 square matrix, which determines how ants of either state affect other ants depending on their state.
+
+The activity level in the next unit of time is equal to a hyperbolic tangent of the sum of the interaction term multiplied by the gain term and the self-interaction term. The hyperbolic tangent is used so as to constrain the activity level in between -1 and 1.
+
+One of the core limitations of the model as implemented in the research paper is the fact that it assumes one ant per grid coordinate. This in turn may cause dissonance between the simulation and reality as observed in the experimental research conducted by Cole and Cheshire for the 1996 paper as some ants may group in close enough spaces that they couldn’t be differentiated as being on separate grid coordinates.
+
+One more possible problem displays itself in the data gathered by Cole and Cheshire (1996). The experiment and model simulation used a low sample size of at most 15 ants which could again cause a significant difference then when observed in a larger but natural setting such as a colony.  
+
 ## Core Mathematical Model 
 
 This simulation implements the continuous activity model from the **Cole & Cheshire (1996)** paper. Each ant agent has a continuous **activity level ($A_t$)** from -1 (inactive) to +1 (active). An ant is *defined* as "active" only when its $A_t > 0$.

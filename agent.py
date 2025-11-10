@@ -136,7 +136,6 @@ class FoodPatch(mesa.Agent):
         #     x, y = self.pos
         #     self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
         #     self._regen_timer = 0
-        #for commit
         pass
 
 

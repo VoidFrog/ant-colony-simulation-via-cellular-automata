@@ -120,3 +120,27 @@ class AntAgent(mesa.Agent):
         if free_spaces:
             new_position = self.random.choice(free_spaces)
             self.model.grid.move_agent(self, new_position)
+class FoodPatch(mesa.Agent):
+    """Komórka z jedzeniem — osobny agent do wizualizacji i (opcjonalnie) odrastania."""
+    def __init__(self, uid, model, pos, amount=0):
+        super().__init__(uid, model)
+        self.pos = pos
+        self.amount = amount
+        # self._regen_timer = 0
+
+    def step(self):
+        # Przykładowe proste odrastanie: co 40 ticków dodaj 1, max 3
+        # self._regen_timer += 1
+        # if self._regen_timer >= 40 and self.amount < 3:
+        #     self.amount += 1
+        #     x, y = self.pos
+        #     self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
+        #     self._regen_timer = 0
+        pass
+
+
+class Nest(mesa.Agent):
+    """Gniazdo mrówek (pojedyncza komórka)."""
+    def __init__(self, uid, model, pos):
+        super().__init__(uid, model)
+        self.pos = pos

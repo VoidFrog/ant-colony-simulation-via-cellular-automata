@@ -48,7 +48,14 @@ model_params = {
     "J_11": Slider("J_11 (Active on Active)", 1.0, 0.0, 2.0, 0.1),
     "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),
     "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),
-    "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1)
+    "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),
+    "pher_dec": Slider("Pheromone Decay Rate", 0.05, 0.0, 1.0, 0.05),
+    "pher_diff": Slider("Pheromone Diffusion Rate", 0.01, 0.0, 1.0, 0.05),
+    "pher_drop": Slider("Amount of phermone dropped per", 1.0, 0.5, 3.0, 0.5),
+    "nfp": Slider("Number of food patches", 1, 1, 10, 1),
+    "fpp": Slider("Food per Patch", 1.0, 1.0, 20.0, 1.0),
+    "noise": Slider("Probability of random movement when not carrying food", 0.0, 0.0,0.5,0.01),
+    "sr": Slider("Sensing radius", 1.0, 1.0, 5.0, 1.0)
 }
 
 # This loop for initial_params

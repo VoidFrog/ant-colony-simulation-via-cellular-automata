@@ -95,3 +95,4 @@ page = SolaraViz(
 # throws an error if more than 1 page is present, so this little trick should do the work
 # even though we dont have more than 1 page, it's better to leave it as is 
 app = page
+#for commit

@@ -157,3 +157,4 @@ class ColonyModel(mesa.Model):
         self.decay(self.pher_home)
         self.diffuse(self.pher_food)
         self.diffuse(self.pher_home)
+    #for commit

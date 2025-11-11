@@ -85,16 +85,17 @@ class ColonyModel(mesa.Model):
         for i in range(self.num_agents):
             a = AntAgent(i, self)
             self.grid.place_agent(a, self.nest_pos)
-        #Uid forces a unique identifier
+        # Uid forces a unique identifier
         uid = 10_000
-        nest = Nest(uid, self, self.nest_pos)
+        nest = Nest(uid, self)
         self.grid.place_agent(nest, self.nest_pos)
         uid += 1
         for x in range(width):
             for y in range(height):
                 amount = self.food[x, y]
                 if amount > 0:
-                    patch = FoodPatch(uid, self, (x, y), amount=amount)
+                    patch = FoodPatch(uid, self)
+                    patch.amount = amount
                     self.grid.place_agent(patch, (x, y))
                     uid += 1
 

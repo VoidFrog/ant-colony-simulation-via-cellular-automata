@@ -103,7 +103,6 @@ class ColonyModel(mesa.Model):
                     self.grid.place_agent(patch, (x, y))
                     uid += 1
 
-            
         # Setup DataCollector
         self.food_delivered = 0
         self.datacollector = mesa.DataCollector(

@@ -41,7 +41,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying:
             util += 3.0 * self.model.food[x, y]
             util += 1.0 * self.model.pher_food[x, y]
-            util += -0.01 * self.dist_to_nest(pos_next)
+            util -= 0.01 * self.dist_to_nest(pos_next)
         else:
             util += 2.0 * self.model.pher_home[x, y]
             util += 0.2 * (self.model.max_dist - self.dist_to_nest(pos_next))
@@ -50,9 +50,8 @@ class AntAgent(mesa.Agent):
     def dist_to_nest(self, pos):
         (nx, ny) = self.model.nest_pos
         (x, y) = pos
-        grid = self.model.grid
-        dx = min(abs(x - nx), grid.width - abs(x - nx)) if grid.torus else abs(x - nx)
-        dy = min(abs(y - ny), grid.height - abs(y - ny)) if grid.torus else abs(y - ny)
+        dx = abs(x - nx)
+        dy = abs(y - ny)
         return dx + dy
 
     def get_interaction_sum(self):
@@ -148,7 +147,7 @@ class AntAgent(mesa.Agent):
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)
 
-        if self.random.random() < self.model.noise:
+        if self.random.random() < self.model.noise or best_move < 0:
             next_pos = self.random.choice(possible_steps)
         else:
             cnd = [m for s, m in score if s == best_move]

@@ -145,13 +145,16 @@ class AntAgent(mesa.Agent):
         possible_steps = self.legal_moves()
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)
+
         if self.random.random() < self.model.noise:
-            next_pos=self.random.choice(possible_steps)
+            next_pos = self.random.choice(possible_steps)
         else:
             cnd = [m for s, m in score if s == best_move]
             next_pos = self.random.choice(cnd)
+
         self.model.grid.move_agent(self.pos, next_pos)
         x, y = next_pos[0], next_pos[1]
+
         if not self.carrying and self.model.food[x, y] > 0:
             self.model.food[x, y] -= 1
             self.carrying = True

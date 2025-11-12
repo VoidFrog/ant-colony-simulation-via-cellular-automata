@@ -11,10 +11,11 @@ def get_active_ant_percentage(model):
     Helper function for the DataCollector:
     Calculates the percentage of ants that are 'active' (A_t > 0).
     """
-    active_ants = [a for a in model.agents if a.state == 'active']
-    if not model.agents:
+    ants_agents = model.agents.select(lambda agent: isinstance(agent, AntAgent))
+    active_ants = [a for a in ants_agents if a.state == 'active']
+    if not ants_agents:
         return 0
-    return (len(active_ants) / len(model.agents)) * 100
+    return (len(active_ants) / len(ants_agents)) * 100
 
 
 class ColonyModel(mesa.Model):
@@ -103,7 +104,7 @@ class ColonyModel(mesa.Model):
         # Setup DataCollector
         self.food_delivered = 0
         self.datacollector = mesa.DataCollector(
-            model_reporters={"ActiveAntPercentage": get_active_ant_percentage, "FoodDelivered": self.food_delivered},
+            model_reporters={"ActiveAntPercentage": get_active_ant_percentage, "FoodDelivered": self.food_delivered/(self.nfp * self.fpp)},
             agent_reporters={"ActivityLevel": "activity_level", "State": "state"})
 
     def _scatter_food(self, n_patches, r):

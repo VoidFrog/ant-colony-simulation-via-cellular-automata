@@ -161,9 +161,11 @@ class AntAgent(mesa.Agent):
             for agent in self.model.grid.get_cell_list_contents([next_pos]):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)
+
         if self.carrying and ((x,y) == self.model.nest_pos):
             self.model.food_delivered += 1
             self.carrying = False
+
         if self.carrying:
             self.model.pher_home[x, y] += self.model.pher_drop
         else:

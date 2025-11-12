@@ -129,6 +129,7 @@ class ColonyModel(mesa.Model):
 
     def decay(self, arr):
         arr *= (1.0-self.pher_dec)
+        return arr
 
     def diffuse(self,arr):
         W, H = self.grid.width, self.grid.height
@@ -141,8 +142,8 @@ class ColonyModel(mesa.Model):
                     ([arr[i, j - 1]] if j > 0 else []) + \
                     ([arr[i, j + 1]] if j < H - 1 else [])
                 avg = sum(vals) / len(vals)
-                n = (1-self.pher_diff)*arr[i, j] + self.pher_diff*avg
-        arr[:, :] = n
+                n[i, j] = (1 - self.pher_diff) * arr[i, j] + self.pher_diff * avg
+        return n
 
     def step(self):
         """
@@ -154,7 +155,6 @@ class ColonyModel(mesa.Model):
         self.agents.do("step")
         # 2. All agents apply their new state.
         self.agents.do("advance")
-        self.decay(self.pher_food)
-        self.decay(self.pher_home)
-        self.diffuse(self.pher_food)
-        self.diffuse(self.pher_home)
+
+        self.pher_food = self.diffuse(self.decay(self.pher_food))
+        self.pher_home = self.diffuse(self.decay(self.pher_home))

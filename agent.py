@@ -3,6 +3,8 @@ from typing import Tuple
 import mesa
 import math
 
+from mesa import Agent
+
 
 class AntAgent(mesa.Agent):
     """
@@ -64,7 +66,7 @@ class AntAgent(mesa.Agent):
             moore=True,
             include_center=False
         )
-        
+        neighbors = [neighbor for neighbor in neighbors if isinstance(neighbor, AntAgent)]
         for neighbor in neighbors:
             # Determine which J coefficient to use based on states
             if self.state == 'active' and neighbor.state == 'active':
@@ -115,7 +117,7 @@ class AntAgent(mesa.Agent):
         # "a single unit is activated with a constant probability if it is inactive"
         # "A randomly activated ant has an activity level of 0.01" 
         if self.state == 'inactive':
-            if self.random.random() < self.model.prob_spontaneous:
+            if self.random.random() < self.model.prob_spontaneous_activation:
                 next_activity_level = 0.01
 
         # Set the new activity level for the *next* step
@@ -152,7 +154,7 @@ class AntAgent(mesa.Agent):
             cnd = [m for s, m in score if s == best_move]
             next_pos = self.random.choice(cnd)
 
-        self.model.grid.move_agent(self.pos, next_pos)
+        self.model.grid.move_agent(self, next_pos)
         x, y = next_pos[0], next_pos[1]
 
         if not self.carrying and self.model.food[x, y] > 0:

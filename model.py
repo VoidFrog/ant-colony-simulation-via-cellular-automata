@@ -17,6 +17,9 @@ def get_active_ant_percentage(model):
         return 0
     return (len(active_ants) / len(ants_agents)) * 100
 
+def get_food_delivered_percentage(model):
+    return model.food_delivered / (model.nfp * model.fpp)
+
 
 class ColonyModel(mesa.Model):
     """
@@ -104,7 +107,7 @@ class ColonyModel(mesa.Model):
         # Setup DataCollector
         self.food_delivered = 0
         self.datacollector = mesa.DataCollector(
-            model_reporters={"ActiveAntPercentage": get_active_ant_percentage, "FoodDelivered": self.food_delivered/(self.nfp * self.fpp)},
+            model_reporters={"ActiveAntPercentage": get_active_ant_percentage, "FoodDelivered": get_food_delivered_percentage},
             agent_reporters={"ActivityLevel": "activity_level", "State": "state"})
 
     def _scatter_food(self, n_patches, r):

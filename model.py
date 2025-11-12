@@ -64,7 +64,7 @@ class ColonyModel(mesa.Model):
         self.noise = float(get_value(noise))
         self.sr = float(get_value(sr))
         self.nest_pos = (width // 2, height // 2)
-        self.max_dist = (width + height)
+        self.max_dist = (width // 2 + height // 2)
         if final_seed is not None:
             try:
                 final_seed = int(final_seed)

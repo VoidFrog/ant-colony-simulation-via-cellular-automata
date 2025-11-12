@@ -22,6 +22,7 @@ class AntAgent(mesa.Agent):
         self.next_activity_level = self.activity_level
         # Start as not carrying food
         self.carrying = False
+        self.previous_pos = None
 
     @property
     def state(self):
@@ -143,7 +144,9 @@ class AntAgent(mesa.Agent):
         """
         Determines the next step based on the objective function.
         """
-        possible_steps = self.legal_moves()
+        possible_steps = list(self.legal_moves())
+        if self.previous_pos is not None:
+            possible_steps.remove(self.previous_pos)
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)
 
@@ -153,6 +156,7 @@ class AntAgent(mesa.Agent):
             cnd = [m for s, m in score if s == best_move]
             next_pos = self.random.choice(cnd)
 
+        self.previous_pos = self.pos
         self.model.grid.move_agent(self, next_pos)
         x, y = next_pos[0], next_pos[1]
 

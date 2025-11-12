@@ -180,6 +180,10 @@ class FoodPatch(mesa.Agent):
         self.amount = 0
         # self._regen_timer = 0
 
+    @property
+    def state(self):
+        return 'full' if self.amount > 0 else 'empty'
+
     def step(self):
         # Optional regrowth
         # self._regen_timer += 1

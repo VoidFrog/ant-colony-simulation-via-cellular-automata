@@ -8,25 +8,35 @@ from mesa.visualization import (
 from solara import InputInt
 
 from model import ColonyModel
-from agent import AntAgent
+from agent import AntAgent, FoodPatch, Nest
+
 
 def agent_portrayal(agent):
     """
     Draw agents based on their 'state' property (active/inactive).
     Uses Matplotlib-compatible keywords.
     """
-    if not isinstance(agent, AntAgent):
-        return
+    portrayal = {"marker": "o"}
 
-    portrayal = {"marker": "o"} # "o" is a circle
-
-    if agent.state == 'active':
-        portrayal["color"] = "#FF0000" # Red
-        portrayal["s"] = 60 # 's' is size (area), not radius
+    if isinstance(agent, AntAgent):
+        if agent.state == 'active':
+            portrayal["color"] = "#FF0000"  # Red
+            portrayal["size"] = 60  # 's' is size (area), not radius
+        else:
+            portrayal["color"] = "#333333"  # Dark Gray
+            portrayal["size"] = 30
+    elif isinstance(agent, FoodPatch):
+        portrayal["marker"] = "s"
+        if agent.state == 'full':
+            portrayal["color"] = "#337329"
+            portrayal["size"] = 100
+        else:
+            portrayal["color"] = "#FFFFFF"
+            portrayal["size"] = 100
+    elif isinstance(agent, Nest):
+        portrayal = {"marker": "s", "color": "#541608", "size": 100}
     else:
-        portrayal["color"] = "#333333" # Dark Gray
-        portrayal["s"] = 30
-
+        return
     return portrayal
 
 # Define grid size

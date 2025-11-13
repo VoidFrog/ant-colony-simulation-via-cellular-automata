@@ -1,10 +1,13 @@
 import mesa
 from mesa.visualization import (
     SolaraViz, 
-    Slider, 
-    make_plot_component, 
+    Slider,
+    SpaceRenderer,
+    make_plot_component,
     make_space_component
 )
+from mesa.visualization.components import PropertyLayerStyle
+
 from solara import InputInt
 
 from model import ColonyModel
@@ -39,6 +42,10 @@ def agent_portrayal(agent):
         return
     return portrayal
 
+def propertylayer_portrayal(layer):
+    if layer.name == "pher_food":
+        return PropertyLayerStyle(color="blue", alpha=0.8, vmin=0, vmax=10,colorbar=True)
+
 # Define grid size
 GRID_WIDTH = 30
 GRID_HEIGHT = 30
@@ -46,11 +53,11 @@ GRID_HEIGHT = 30
 # Define Model Parameters for Sliders
 model_params = {
     "seed": InputInt(
-        label="Random Seed", 
+        label="Random Seed",
         value=42,
     ),
     # -----------------
-    "N": Slider("Number of Ants", 25, 10, 100, 1), 
+    "N": Slider("Number of Ants", 25, 10, 100, 1),
     "width": GRID_WIDTH,
     "height": GRID_HEIGHT,
     "g": Slider("Gain (g)", 0.05, 0.0, 1.0, 0.05),
@@ -59,11 +66,11 @@ model_params = {
     "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),
     "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),
     "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),
-    "pher_dec": Slider("Pheromone Decay Rate", 0.05, 0.0, 1.0, 0.05),
-    "pher_diff": Slider("Pheromone Diffusion Rate", 0.01, 0.0, 1.0, 0.05),
+    "pher_dec": Slider("Pheromone Decay Rate", 0.1, 0.0, 1.0, 0.05),
+    "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),
     "pher_drop": Slider("Amount of phermone dropped per", 1.0, 0.5, 3.0, 0.5),
-    "nfp": Slider("Number of food patches", 1, 1, 10, 1),
-    "fpp": Slider("Food per Patch", 1.0, 1.0, 20.0, 1.0),
+    "nfp": Slider("Number of food patches", 2, 1, 10, 1),
+    "fpp": Slider("Food per Patch", 10.0, 1.0, 20.0, 1.0),
     "noise": Slider("Probability of random movement when not carrying food", 0.0, 0.0,0.5,0.01),
     "sr": Slider("Sensing radius", 1.0, 1.0, 5.0, 1.0)
 }
@@ -84,20 +91,29 @@ initial_params["seed"] = int(initial_params["seed"])
 initial_model = ColonyModel(**initial_params)
 
 # Create the chart
-chart = make_plot_component(
+chart1 = make_plot_component(
     ["ActiveAntPercentage"]
+
+)
+chart2 = make_plot_component(
+    ["FoodDelivered"]
 )
 
 # Create the visualization grid component
-grid = make_space_component(
-    agent_portrayal
-)
+# grid = make_space_component(
+#     agent_portrayal
+# )
+
+renderer = SpaceRenderer(model=initial_model, backend="matplotlib")
+renderer.draw_agents(agent_portrayal)
+renderer.draw_propertylayer(propertylayer_portrayal)
 
 # Create the server instance
 page = SolaraViz(
     model=initial_model,
+    renderer=renderer,
     model_params=model_params,
-    components=[grid, chart],
+    components=[chart1],
     name="Cole & Cheshire (1996) MCA Model"
 )
 

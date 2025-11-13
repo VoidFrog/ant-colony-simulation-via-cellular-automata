@@ -10,12 +10,13 @@ class AntAgent(mesa.Agent):
     """
     An agent implementing the Mobile Cellular Automata (MCA) model
     from Cole & Cheshire (1996).
-    
+
     Activity is a continuous value (A_t), not a simple binary state.
     """
+
     def __init__(self, unique_id, model):
-        super().__init__(model) 
-        self.unique_id = unique_id 
+        super().__init__(model)
+        self.unique_id = unique_id
 
         # Initialize with a random activity level between -1 and 1
         self.activity_level = self.random.uniform(-1.0, 1.0)
@@ -33,22 +34,10 @@ class AntAgent(mesa.Agent):
         """
         return 'active' if self.activity_level > 0 else 'inactive'
 
-    def objective(self, pos_next: Tuple[int, int]) -> float:
-        """
-        A function to used to determine pathing based on available pheromones and if the agent has acquired food
-        """
-        x, y = pos_next
-        util = 0.0
-        if not self.carrying:
-            util += 3.0 * self.model.food[x, y]
-            util += 1.0 * self.model.pher_food[x, y]
-            util -= 0.01 * self.dist_to_nest(pos_next)
-        else:
-            util += 2.0 * self.model.pher_home[x, y]
-            util += 0.2 * (self.model.max_dist - self.dist_to_nest(pos_next))
-        return util
-
     def dist_to_nest(self, pos):
+        """
+        Calculates the distance between the current position and the nest
+        """
         (nx, ny) = self.model.nest_pos
         (x, y) = pos
         dx = abs(x - nx)
@@ -58,7 +47,7 @@ class AntAgent(mesa.Agent):
     def get_interaction_sum(self):
         """
         Calculates the sum of interactions with neighbors:
-        Σ(J_ij * A_kt) 
+        Σ(J_ij * A_kt)
         """
         interaction_sum = 0
         neighbors = self.model.grid.get_neighbors(
@@ -70,33 +59,33 @@ class AntAgent(mesa.Agent):
         for neighbor in neighbors:
             # Determine which J coefficient to use based on states
             if self.state == 'active' and neighbor.state == 'active':
-                J = self.model.J_11 # Active -> Active 
+                J = self.model.J_11  # Active -> Active
             elif self.state == 'active' and neighbor.state == 'inactive':
-                J = self.model.J_12 # Inactive -> Active 
+                J = self.model.J_12  # Inactive -> Active
             elif self.state == 'inactive' and neighbor.state == 'active':
-                J = self.model.J_21 # Active -> Inactive 
-            else: # self.state == 'inactive' and neighbor.state == 'inactive'
-                J = self.model.J_22 # Inactive -> Inactive
-            
+                J = self.model.J_21  # Active -> Inactive
+            else:  # self.state == 'inactive' and neighbor.state == 'inactive'
+                J = self.model.J_22  # Inactive -> Inactive
+
             interaction_sum += J * neighbor.activity_level
-            
+
         return interaction_sum
 
     def step(self):
         """
         This method executes the core mathematical model from the
         Cole & Cheshire (1996) paper at each time step.
-        
+
         This calculates the *next* state.
         """
-        
+
         # 1. Calculate S_t (Internal Dynamics / Self-Interaction)
-        # S_t = g * A_t 
+        # S_t = g * A_t
         # This term makes activity naturally decay if the ant is alone.
         S_t = self.model.g * self.activity_level
-        
+
         # 2. Calculate the Interaction Term
-        # g * Σ(J_ij * A_kt) 
+        # g * Σ(J_ij * A_kt)
         interaction_term = self.model.g * self.get_interaction_sum()
 
         # 3. Calculate new A_{t+1}
@@ -111,11 +100,10 @@ class AntAgent(mesa.Agent):
         # the time being, current change looks okay. SHOULD BE TESTED ON ALL OF THE CONFIGS.
         # or maybe im blind and cannot read, oh well, you should double sanity check this deranged piece of code :3
 
-
         # 4. Handle Spontaneous Activation
         # If the ant is inactive, it has a chance to become active.
         # "a single unit is activated with a constant probability if it is inactive"
-        # "A randomly activated ant has an activity level of 0.01" 
+        # "A randomly activated ant has an activity level of 0.01"
         if self.state == 'inactive':
             if self.random.random() < self.model.prob_spontaneous_activation:
                 next_activity_level = 0.01
@@ -125,8 +113,8 @@ class AntAgent(mesa.Agent):
         self.next_activity_level = next_activity_level
 
         # 5. Move if active
-        # "If an ant is active, it will move randomly to one of the 
-        # neighboring lattice points that is not currently occupied" 
+        # "If an ant is active, it will move randomly to one of the
+        # neighboring lattice points that is not currently occupied"
         if self.state == 'active':
             self.move()
 
@@ -137,20 +125,31 @@ class AntAgent(mesa.Agent):
         """
         self.activity_level = self.next_activity_level
 
-    def legal_moves(self):
-        return self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
+    def objective(self, pos_next: Tuple[int, int]) -> float:
+        """
+        A function to used to determine pathing based on available pheromones and if the agent has acquired food
+        """
+        x, y = pos_next
+        util = 0.0
+        if not self.carrying:
+            util += 3.0 * self.model.food[x, y]
+            util += 1.0 * self.model.pher_food_layer.data[x, y]
+        else:
+            util += 2.0 * self.model.pher_home_dict[self][x, y]
+            util += 0.2 * (self.model.max_dist - self.dist_to_nest(pos_next))
+        return util
 
     def move(self):
         """
         Determines the next step based on the objective function.
         """
-        possible_steps = list(self.legal_moves())
+        possible_steps = list(self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False))
         if self.previous_pos is not None:
             possible_steps.remove(self.previous_pos)
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)
 
-        if self.random.random() < self.model.noise or best_move < 0:
+        if self.random.random() < self.model.noise or best_move < 0.1:
             next_pos = self.random.choice(possible_steps)
         else:
             cnd = [m for s, m in score if s == best_move]
@@ -160,6 +159,7 @@ class AntAgent(mesa.Agent):
         self.model.grid.move_agent(self, next_pos)
         x, y = next_pos[0], next_pos[1]
 
+        # picking up nearby food
         if not self.carrying and self.model.food[x, y] > 0:
             self.model.food[x, y] -= 1
             self.carrying = True
@@ -167,23 +167,26 @@ class AntAgent(mesa.Agent):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)
 
-        if self.carrying and ((x,y) == self.model.nest_pos):
+        # delivering food to nest
+        if self.carrying and ((x, y) == self.model.nest_pos):
             self.model.food_delivered += 1
             self.carrying = False
 
+        # dropping pheromones based on carrying status
         if self.carrying:
-            self.model.pher_food[x, y] += self.model.pher_drop
+            self.model.pher_food_layer.modify_cell((x, y), lambda c: c + self.model.pher_drop)
         else:
-            self.model.pher_home[x, y] += self.model.pher_drop
+            self.model.pher_home_dict[self][x, y] += self.model.pher_drop
 
 
 class FoodPatch(mesa.Agent):
-    """A food patch agent for the purpose of food visualisation with an optional way of regrowth"""
+    """
+    A food patch agent for the purpose of food visualisation with an optional way of regrowth
+    """
     def __init__(self, uid, model):
         super().__init__(model)
         self.unique_id = uid
         self.amount = 0
-        # self._regen_timer = 0
 
     @property
     def state(self):
@@ -202,6 +205,7 @@ class FoodPatch(mesa.Agent):
 
 class Nest(mesa.Agent):
     """The nest agent for the purpose of visualisation"""
+
     def __init__(self, uid, model):
         super().__init__(model)
         self.unique_id = uid

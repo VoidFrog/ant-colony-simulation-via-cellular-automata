@@ -172,9 +172,9 @@ class AntAgent(mesa.Agent):
             self.carrying = False
 
         if self.carrying:
-            self.model.pher_home[x, y] += self.model.pher_drop
+            self.model.pher_food[x, y] += self.model.pher_drop
         else:
-            self.model.pher_food[x, y] += self.model.pher_drop * 0.25
+            self.model.pher_home[x, y] += self.model.pher_drop
 
 
 class FoodPatch(mesa.Agent):

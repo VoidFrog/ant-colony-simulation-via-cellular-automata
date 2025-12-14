@@ -170,6 +170,14 @@ class ColonyModel(mesa.Model):
     def limit_value(self, layer):
         layer.set_cells(10.0, lambda x: True if x > 10.0 else False)
 
+    def birth_agents(self):
+        uid = 100_000
+        width , height = self.grid.width, self.grid.height
+        if get_active_ant_percentage(self)/100>0.9 or get_active_ant_percentage(self)/100<0.05 or self.agents<2:
+            if self.random.random()>0.05:
+                a = AntAgent(uid, self)
+                self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
+                self.grid.place_agent(a, self.nest_pos)
     def step(self):
         """
         Advance the model by one step.

@@ -23,6 +23,7 @@ class AntAgent(mesa.Agent):
         self.activity_level = self.random.uniform(-1.0, 1.0)
         self.next_activity_level = self.activity_level
         self.timer=0
+        self.age=0
         # Start as not carrying food
         self.carrying = False
         self.previous_pos = None
@@ -74,12 +75,12 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        """
-        This method executes the core mathematical model from the
-        Cole & Cheshire (1996) paper at each time step.
 
-        This calculates the *next* state.
-        """
+        if self.age >= 60:
+            self.remove()
+            self.model.pher_home_dict.pop(self)
+
+        self.age += 1
 
         # 1. Calculate S_t (Internal Dynamics / Self-Interaction)
         # S_t = g * A_t

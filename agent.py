@@ -1,4 +1,5 @@
 from typing import Tuple
+from model import ColonyModel
 
 import mesa
 import math
@@ -14,7 +15,7 @@ class AntAgent(mesa.Agent):
     Activity is a continuous value (A_t), not a simple binary state.
     """
 
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model: ColonyModel):
         super().__init__(model)
         self.unique_id = unique_id
 
@@ -198,6 +199,8 @@ class FoodPatch(mesa.Agent):
         super().__init__(model)
         self.unique_id = uid
         self.amount = 0
+        self._regen_timer = 0
+        self.depleted = False
 
     @property
     def state(self):
@@ -206,12 +209,22 @@ class FoodPatch(mesa.Agent):
     def step(self):
         # Optional regrowth
         self._regen_timer += 1
-        if self._regen_timer >= 40 and self.amount < 3:
-            self.amount += 1
-            x, y = self.pos
-            self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
-            self._regen_timer = 0
-        pass
+
+        if 0 < self.amount < self.model.fpp:
+            if self.depleted:
+                if self._regen_timer > 60:
+                    self.depleted = False
+                    self._regen_timer = 0
+            elif self._regen_timer >= 5:
+                self.amount += 1
+                x, y = self.pos
+                self.model.food[x, y] += 1
+                self._regen_timer = 0
+        elif self.amount == 0:
+            self.depleted = True
+
+
+
 
 
 class Nest(mesa.Agent):

@@ -89,6 +89,8 @@ class AntAgent(mesa.Agent):
 
         This calculates the *next* state.
         """
+        if self.pos is None:
+            return
 
         # 1. Calculate S_t (Internal Dynamics / Self-Interaction)
         # S_t = g * A_t
@@ -156,6 +158,9 @@ class AntAgent(mesa.Agent):
         """
         Determines the next step based on the objective function.
         """
+        if self.pos is None:
+            return
+
         if not self.carrying:
             self.timer+=1
 
@@ -199,7 +204,7 @@ class AntAgent(mesa.Agent):
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
         if self.timer>10:
-            self.colony.grid.remove_agent(self)
+            self.remove()
             if self in self.colony.pher_home_dict:
                 self.colony.pher_home_dict.pop(self)
 
@@ -228,6 +233,9 @@ class FoodPatch(mesa.Agent):
     def step(self):
         # Optional regrowth
         self._regen_timer += 1
+
+        if self.pos is None:
+            return
 
         if 0 < self.amount < self.colony.fpp:
             if self.depleted:

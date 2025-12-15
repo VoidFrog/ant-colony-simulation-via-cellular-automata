@@ -23,7 +23,7 @@ class AntAgent(mesa.Agent):
         # Initialize with a random activity level between -1 and 1
         self.activity_level = self.random.uniform(-1.0, 1.0)
         self.next_activity_level = self.activity_level
-        self.timer = 0
+        self.hunger = 0
         self.age = 0
         # Start as not carrying food
         self.carrying = False
@@ -100,7 +100,7 @@ class AntAgent(mesa.Agent):
             if self.random.random() < self.colony.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.timer -= 0.5
+            self.hunger -= 0.5
         self.next_activity_level = next_activity_level
         if self.state == 'active':
             self.move()
@@ -131,7 +131,7 @@ class AntAgent(mesa.Agent):
         Determines the next step based on the objective function.
         """
         if not self.carrying:
-            self.timer+=1
+            self.hunger+=1
 
         current_position = cast(Tuple[int, int], self.pos)
         previous_position = cast(Tuple[int, int], self.previous_pos)
@@ -157,7 +157,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying and self.colony.food[x, y] > 0:
             self.colony.food[x, y] -= 1
             self.carrying = True
-            self.timer=0
+            self.hunger=0
             for agent in self.colony.grid.get_cell_list_contents([next_pos]):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)
@@ -172,7 +172,7 @@ class AntAgent(mesa.Agent):
             self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.colony.pher_drop)
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
-        if self.timer>10:
+        if self.hunger>10:
             self.colony.grid.remove_agent(self)
             if self in self.colony.pher_home_dict:
                 self.colony.pher_home_dict.pop(self)

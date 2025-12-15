@@ -58,6 +58,7 @@ class ColonyModel(mesa.Model):
 
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
+        self.uid = 0
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -98,22 +99,22 @@ class ColonyModel(mesa.Model):
 
         # Create agents
         for i in range(self.num_agents):
-            a = AntAgent(i, self)
+            a = AntAgent(self.uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
             self.grid.place_agent(a, self.nest_pos)
+            self.uid += 1
         # Uid forces a unique identifier
-        uid = 10_000
-        nest = Nest(uid, self)
+        nest = Nest(self.uid, self)
         self.grid.place_agent(nest, self.nest_pos)
-        uid += 1
+        self.uid += 1
         for x in range(width):
             for y in range(height):
                 amount = self.food[x, y]
                 if amount > 0:
-                    patch = FoodPatch(uid, self)
+                    patch = FoodPatch(self.uid, self)
                     patch.amount = amount
                     self.grid.place_agent(patch, (x, y))
-                    uid += 1
+                    self.uid += 1
 
         # Setup DataCollector
         self.food_delivered = 0
@@ -176,7 +177,6 @@ class ColonyModel(mesa.Model):
         layer.set_cells(10.0, lambda x: True if x > 10.0 else False)
 
     def birth_agents(self):
-        uid = 100_000
         width , height = self.grid.width, self.grid.height
         bprob=0.0
         if get_active_ant_percentage(self) / 100 < 0.05 or len(self.agents) < 2:
@@ -184,7 +184,7 @@ class ColonyModel(mesa.Model):
         else:
             bprob=0.1
         if self.random.random() >= bprob:
-            a = AntAgent(uid, self)
+            a = AntAgent(self.uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
             self.grid.place_agent(a, self.nest_pos)
 

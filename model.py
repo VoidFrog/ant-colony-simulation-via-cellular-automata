@@ -199,11 +199,6 @@ class ColonyModel(mesa.Model):
         """
         self.datacollector.collect(self)
 
-        # remove dead ants
-        for agent in list(self.agents):
-            if isinstance(agent, AntAgent) and agent.is_dead:
-                agent.remove()
-
         # 1. All agents calculate their next state based on the current state.
         self.agents.do("step")
         # 2. All agents apply their new state.
@@ -215,4 +210,9 @@ class ColonyModel(mesa.Model):
         self.limit_value(self.pher_food_layer)
         for k, v in self.pher_home_dict.items():
             self.pher_home_dict[k] = self.decay(v)
+
+        # remove dead ants
+        for agent in list(self.agents):
+            if isinstance(agent, AntAgent) and agent.is_dead:
+                agent.remove()
 

@@ -109,7 +109,7 @@ class AntAgent(mesa.Agent):
             if self.random.random() < self.model.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.timer+=1
+            self.timer-=0.5
 
         # Set the new activity level for the *next* step
         # We use this value in the 'advance' method.

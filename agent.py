@@ -144,6 +144,9 @@ class AntAgent(mesa.Agent):
         possible_steps = list(self.colony.grid.get_neighborhood(current_position, moore=True, include_center=False))
         if self.previous_pos is not None:
             possible_steps.remove(previous_position)
+        for i in range(possible_steps.__len__()):
+            if self.model.obstacles[possible_steps[i]] !=0:
+                possible_steps.pop(i)
             
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)

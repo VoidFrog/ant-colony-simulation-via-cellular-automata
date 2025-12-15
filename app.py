@@ -1,3 +1,4 @@
+from typing import Any, Dict
 import mesa
 from mesa.visualization import (
     SolaraViz, 
@@ -19,8 +20,8 @@ def agent_portrayal(agent):
     Draw agents based on their 'state' property (active/inactive).
     Uses Matplotlib-compatible keywords.
     """
-    portrayal = {"marker": "o"}
-
+    portrayal: Dict[str, Any] = {"marker": "o"}
+    
     if isinstance(agent, AntAgent):
         if agent.state == 'active':
             portrayal["color"] = "#FF0000"  # Red
@@ -60,19 +61,19 @@ model_params = {
     "N": Slider("Number of Ants", 25, 10, 100, 1),
     "width": GRID_WIDTH,
     "height": GRID_HEIGHT,
-    "g": Slider("Gain (g)", 0.05, 0.0, 1.0, 0.05),
-    "prob_spontaneous": Slider("Spontaneous Activation Prob.", 0.01, 0.0, 0.1, 0.005),
-    "J_11": Slider("J_11 (Active on Active)", 1.0, 0.0, 2.0, 0.1),
-    "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),
-    "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),
-    "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),
-    "pher_dec": Slider("Pheromone Decay Rate", 0.1, 0.0, 1.0, 0.05),
-    "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),
-    "pher_drop": Slider("Amount of phermone dropped per", 1.0, 0.5, 3.0, 0.5),
-    "nfp": Slider("Number of food patches", 2, 1, 10, 1),
-    "fpp": Slider("Food per Patch", 10.0, 1.0, 20.0, 1.0),
-    "noise": Slider("Probability of random movement when not carrying food", 0.0, 0.0,0.5,0.01),
-    "sr": Slider("Sensing radius", 1.0, 1.0, 5.0, 1.0)
+    "g": Slider("Gain (g)", 0.05, 0.0, 1.0, 0.05),#type: ignore
+    "prob_spontaneous": Slider("Spontaneous Activation Prob.", 0.01, 0.0, 0.1, 0.005),#type: ignore
+    "J_11": Slider("J_11 (Active on Active)", 1.0, 0.0, 2.0, 0.1),#type: ignore
+    "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),#type: ignore
+    "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),#type: ignore
+    "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),#type: ignore
+    "pher_dec": Slider("Pheromone Decay Rate", 0.1, 0.0, 1.0, 0.05),#type: ignore
+    "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),#type: ignore
+    "pher_drop": Slider("Amount of phermone dropped per", 1.0, 0.5, 3.0, 0.5),#type: ignore
+    "nfp": Slider("Number of food patches", 2, 1, 10, 1),#type: ignore
+    "fpp": Slider("Food per Patch", 10.0, 1.0, 20.0, 1.0),#type: ignore
+    "noise": Slider("Probability of random movement when not carrying food", 0.0, 0.0,0.5,0.01),#type: ignore
+    "sr": Slider("Sensing radius", 1.0, 1.0, 5.0, 1.0)#type: ignore
 }
 
 # This loop for initial_params
@@ -113,7 +114,7 @@ page = SolaraViz(
     model=initial_model,
     renderer=renderer,
     model_params=model_params,
-    components=[chart1],
+    components=[chart1, chart2], #type: ignore
     name="Cole & Cheshire (1996) MCA Model"
 )
 

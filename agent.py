@@ -1,10 +1,12 @@
-from typing import Tuple
+from typing import Tuple, cast, TYPE_CHECKING
 
 import mesa
 import math
 
 from mesa import Agent
 
+if TYPE_CHECKING:
+    from model import ColonyModel
 
 class AntAgent(mesa.Agent):
     """
@@ -13,18 +15,24 @@ class AntAgent(mesa.Agent):
 
     Activity is a continuous value (A_t), not a simple binary state.
     """
-
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model: "ColonyModel"):
         super().__init__(model)
         self.unique_id = unique_id
 
         # Initialize with a random activity level between -1 and 1
         self.activity_level = self.random.uniform(-1.0, 1.0)
         self.next_activity_level = self.activity_level
-        self.hunger=0
+        self.timer=0
         # Start as not carrying food
         self.carrying = False
         self.previous_pos = None
+
+    @property
+    def colony(self) -> "ColonyModel":
+        """
+        Helper property to access the MESA model already casted into "ColonyModel"
+        """
+        return cast("ColonyModel", self.model)
 
     @property
     def state(self):
@@ -39,7 +47,7 @@ class AntAgent(mesa.Agent):
         """
         Calculates the distance between the current position and the nest
         """
-        (nx, ny) = self.model.nest_pos
+        (nx, ny) = self.colony.nest_pos
         (x, y) = pos
         dx = abs(x - nx)
         dy = abs(y - ny)
@@ -51,8 +59,10 @@ class AntAgent(mesa.Agent):
         Σ(J_ij * A_kt)
         """
         interaction_sum = 0
-        neighbors = self.model.grid.get_neighbors(
-            self.pos,
+        current_position = cast(Tuple[int, int], self.pos)
+
+        neighbors = self.colony.grid.get_neighbors(
+            current_position,
             moore=True,
             include_center=False
         )
@@ -60,13 +70,13 @@ class AntAgent(mesa.Agent):
         for neighbor in neighbors:
             # Determine which J coefficient to use based on states
             if self.state == 'active' and neighbor.state == 'active':
-                J = self.model.J_11  # Active -> Active
+                J = self.colony.J_11  # Active -> Active
             elif self.state == 'active' and neighbor.state == 'inactive':
-                J = self.model.J_12  # Inactive -> Active
+                J = self.colony.J_12  # Inactive -> Active
             elif self.state == 'inactive' and neighbor.state == 'active':
-                J = self.model.J_21  # Active -> Inactive
+                J = self.colony.J_21  # Active -> Inactive
             else:  # self.state == 'inactive' and neighbor.state == 'inactive'
-                J = self.model.J_22  # Inactive -> Inactive
+                J = self.colony.J_22  # Inactive -> Inactive
 
             interaction_sum += J * neighbor.activity_level
 
@@ -83,11 +93,11 @@ class AntAgent(mesa.Agent):
         # 1. Calculate S_t (Internal Dynamics / Self-Interaction)
         # S_t = g * A_t
         # This term makes activity naturally decay if the ant is alone.
-        S_t = self.model.g * self.activity_level
+        S_t = self.colony.g * self.activity_level
 
         # 2. Calculate the Interaction Term
         # g * Σ(J_ij * A_kt)
-        interaction_term = self.model.g * self.get_interaction_sum()
+        interaction_term = self.colony.g * self.get_interaction_sum()
 
         # 3. Calculate new A_{t+1}
         # A_{t+1} = Tanh( [interaction term] + S_t )
@@ -95,7 +105,7 @@ class AntAgent(mesa.Agent):
         # Tanh is used to keep the value between -1 and 1.
 
         # HAPPY CREATIVE GLUE AND DELUSION POWERS USAGE HERE
-        next_activity_level = math.tanh(interaction_term + self.model.g * S_t)
+        next_activity_level = math.tanh(interaction_term + self.colony.g * S_t)
         # this little addon in the equation was made by myself as the model
         # didn't behave correctly. We should search for the reason, but for
         # the time being, current change looks okay. SHOULD BE TESTED ON ALL OF THE CONFIGS.
@@ -106,10 +116,10 @@ class AntAgent(mesa.Agent):
         # "a single unit is activated with a constant probability if it is inactive"
         # "A randomly activated ant has an activity level of 0.01"
         if self.state == 'inactive':
-            if self.random.random() < self.model.prob_spontaneous_activation:
+            if self.random.random() < self.colony.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.hunger-=0.5
+            self.timer-=0.5
 
         # Set the new activity level for the *next* step
         # We use this value in the 'advance' method.
@@ -135,11 +145,11 @@ class AntAgent(mesa.Agent):
         x, y = pos_next
         util = 0.0
         if not self.carrying:
-            util += 3.0 * self.model.food[x, y]
-            util += 1.0 * self.model.pher_food_layer.data[x, y]
+            util += 3.0 * self.colony.food[x, y]
+            util += 1.0 * self.colony.pher_food_layer.data[x, y]
         else:
-            util += 2.0 * self.model.pher_home_dict[self][x, y]
-            util += 0.2 * (self.model.max_dist - self.dist_to_nest(pos_next))
+            util += 2.0 * self.colony.pher_home_dict[self][x, y]
+            util += 0.2 * (self.colony.max_dist - self.dist_to_nest(pos_next))
         return util
 
     def move(self):
@@ -147,46 +157,51 @@ class AntAgent(mesa.Agent):
         Determines the next step based on the objective function.
         """
         if not self.carrying:
-            self.hunger+=1
-        possible_steps = list(self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False))
+            self.timer+=1
+
+        current_position = cast(Tuple[int, int], self.pos)
+        previous_position = cast(Tuple[int, int], self.previous_pos)
+
+        possible_steps = list(self.colony.grid.get_neighborhood(current_position, moore=True, include_center=False))
         if self.previous_pos is not None:
-            possible_steps.remove(self.previous_pos)
+            possible_steps.remove(previous_position)
+            
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)
 
-        if self.random.random() < self.model.noise or best_move < 0.1:
+        if self.random.random() < self.colony.noise or best_move < 0.1:
             next_pos = self.random.choice(possible_steps)
         else:
             cnd = [m for s, m in score if s == best_move]
             next_pos = self.random.choice(cnd)
 
         self.previous_pos = self.pos
-        self.model.grid.move_agent(self, next_pos)
+        self.colony.grid.move_agent(self, next_pos)
         x, y = next_pos[0], next_pos[1]
 
         # picking up nearby food
-        if not self.carrying and self.model.food[x, y] > 0:
-            self.model.food[x, y] -= 1
+        if not self.carrying and self.colony.food[x, y] > 0:
+            self.colony.food[x, y] -= 1
             self.carrying = True
-            self.hunger=0
-            for agent in self.model.grid.get_cell_list_contents([next_pos]):
+            self.timer=0
+            for agent in self.colony.grid.get_cell_list_contents([next_pos]):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)
 
         # delivering food to nest
-        if self.carrying and ((x, y) == self.model.nest_pos):
-            self.model.food_delivered += 1
+        if self.carrying and ((x, y) == self.colony.nest_pos):
+            self.colony.food_delivered += 1
             self.carrying = False
 
         # dropping pheromones based on carrying status
         if self.carrying:
-            self.model.pher_food_layer.modify_cell((x, y), lambda c: c + self.model.pher_drop)
+            self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.colony.pher_drop)
         else:
-            self.model.pher_home_dict[self][x, y] += self.model.pher_drop
-        if self.hunger>self.model.max_dist():
-            self.remove()
-            self.model.pher_home_dict.pop(self)
-            self.model.grid.remove_agent(self)
+            self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
+        if self.timer>10:
+            self.colony.grid.remove_agent(self)
+            if self in self.colony.pher_home_dict:
+                self.colony.pher_home_dict.pop(self)
 
 
 
@@ -199,6 +214,12 @@ class FoodPatch(mesa.Agent):
         super().__init__(model)
         self.unique_id = uid
         self.amount = 0
+        self._regen_timer = 0
+        self.depleted = False
+
+    @property
+    def colony(self) -> "ColonyModel":
+        return cast("ColonyModel", self.model)
 
     @property
     def state(self):
@@ -206,13 +227,23 @@ class FoodPatch(mesa.Agent):
 
     def step(self):
         # Optional regrowth
-        self._regen_hunger += 1
-        if self._regen_hunger >= 40 and self.amount < 3:
-            self.amount += 1
-            x, y = self.pos
-            self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
-            self._regen_hunger = 0
-        pass
+        self._regen_timer += 1
+
+        if 0 < self.amount < self.colony.fpp:
+            if self.depleted:
+                if self._regen_timer > 60:
+                    self.depleted = False
+                    self._regen_timer = 0
+            elif self._regen_timer >= 5:
+                self.amount += 1
+                x, y = cast(Tuple[int, int], self.pos)
+                self.colony.food[x, y] += 1
+                self._regen_timer = 0
+        elif self.amount == 0:
+            self.depleted = True
+
+
+
 
 
 class Nest(mesa.Agent):

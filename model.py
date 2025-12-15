@@ -70,7 +70,7 @@ class ColonyModel(mesa.Model):
         self.fpp = float(get_value(fpp))
         self.noise = float(get_value(noise))
         self.sr = float(get_value(sr))
-        self.nest_pos = (width -width//10, height -height//10)
+        self.nest_pos = (width // 2, height // 2)
         self.max_dist = (width // 2 + height // 2)
         if final_seed is not None:
             try:
@@ -82,8 +82,7 @@ class ColonyModel(mesa.Model):
         super().__init__(seed=final_seed)
         self.grid = mesa.space.MultiGrid(width, height, torus=False)
         self.food = np.zeros((width, height), dtype=int)
-        self.obstacles=np.zeroes((width, height), dtype=int)
-        self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=float)
+        self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=np.float64)
         self.grid.add_property_layer(self.pher_food_layer)
         self.pher_home_dict = {}
         self.running = True
@@ -141,8 +140,6 @@ class ColonyModel(mesa.Model):
                     continue
                 else:
                     self.food[x, y] = 0
-    def _make_obstacles(self):
-        self.obstacles = []
 
     def decay(self, arr):
         arr *= (1.0 - self.pher_dec)
@@ -185,7 +182,6 @@ class ColonyModel(mesa.Model):
             a = AntAgent(uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
             self.grid.place_agent(a, self.nest_pos)
-
 
 
     def step(self):

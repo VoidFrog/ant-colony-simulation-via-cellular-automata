@@ -182,9 +182,6 @@ class AntAgent(mesa.Agent):
             self.model.pher_home_dict[self][x, y] += self.model.pher_drop
         if self.timer>10 and not self.carrying and self.random.random() > 0.5:
             self.remove()
-
-
-
 class FoodPatch(mesa.Agent):
     """
     A food patch agent for the purpose of food visualisation with an optional way of regrowth

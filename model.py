@@ -201,7 +201,7 @@ class ColonyModel(mesa.Model):
 
         # remove dead ants
         for agent in list(self.agents):
-            if agent.is_dead:
+            if isinstance(agent, AntAgent) and agent.is_dead:
                 agent.remove()
 
         # 1. All agents calculate their next state based on the current state.

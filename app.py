@@ -48,8 +48,8 @@ def propertylayer_portrayal(layer):
         return PropertyLayerStyle(color="blue", alpha=0.8, vmin=0, vmax=10,colorbar=True)
 
 # Define grid size
-GRID_WIDTH = 30
-GRID_HEIGHT = 30
+GRID_WIDTH = 50
+GRID_HEIGHT = 50
 
 # Define Model Parameters for Sliders
 model_params = {

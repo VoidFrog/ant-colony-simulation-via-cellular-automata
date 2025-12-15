@@ -99,8 +99,8 @@ class ColonyModel(mesa.Model):
         self._make_obstacles("rock")
         for i in range(width):
             for j in range(height):
-                if self.obstacles[i][j] !=0 and self.food[i][j] !=0:
-                    self.food[i][j] =0
+                if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
+                    self.food[i][j] = 0
         # Create agents
         for i in range(self.num_agents):
             a = AntAgent(self.uid, self)

@@ -214,5 +214,6 @@ class ColonyModel(mesa.Model):
         # remove dead ants
         for agent in list(self.agents):
             if isinstance(agent, AntAgent) and agent.is_dead:
+                self.pher_home_dict.pop(agent)
                 agent.remove()
 

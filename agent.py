@@ -145,7 +145,7 @@ class AntAgent(mesa.Agent):
         if self.previous_pos is not None:
             possible_steps.remove(previous_position)
 
-        possible_steps = [step for step in possible_steps if self.colony.obstacles[step] == 0]
+        possible_steps = [step for step in possible_steps if self.colony.obstacles[step[0], step[1]] == 0]
 
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)

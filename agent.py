@@ -205,12 +205,12 @@ class FoodPatch(mesa.Agent):
 
     def step(self):
         # Optional regrowth
-        # self._regen_timer += 1
-        # if self._regen_timer >= 40 and self.amount < 3:
-        #     self.amount += 1
-        #     x, y = self.pos
-        #     self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
-        #     self._regen_timer = 0
+        self._regen_timer += 1
+        if self._regen_timer >= 40 and self.amount < 3:
+            self.amount += 1
+            x, y = self.pos
+            self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
+            self._regen_timer = 0
         pass
 
 

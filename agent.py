@@ -86,7 +86,7 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        if self.age >= 60 or self.hunger >= 20:
+        if self.age >= 120 or self.hunger >= 80:
             self.is_dead = True
             return
 
@@ -122,6 +122,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying:
             util += 3.0 * self.colony.food[x, y]
             util += 1.0 * self.colony.pher_food_layer.data[x, y]
+            util += 0.2 * self.dist_to_nest(pos_next)
         else:
             util += 2.0 * self.colony.pher_home_dict[self][x, y]
             util += 0.2 * (self.colony.max_dist - self.dist_to_nest(pos_next))

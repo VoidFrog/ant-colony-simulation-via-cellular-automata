@@ -189,6 +189,7 @@ class AntAgent(mesa.Agent):
 
 
 
+
 class FoodPatch(mesa.Agent):
     """
     A food patch agent for the purpose of food visualisation with an optional way of regrowth

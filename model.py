@@ -82,7 +82,7 @@ class ColonyModel(mesa.Model):
         super().__init__(seed=final_seed)
         self.grid = mesa.space.MultiGrid(width, height, torus=False)
         self.food = np.zeros((width, height), dtype=int)
-        self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=float)
+        self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=np.float64)
         self.grid.add_property_layer(self.pher_food_layer)
         self.pher_home_dict = {}
         self.running = True

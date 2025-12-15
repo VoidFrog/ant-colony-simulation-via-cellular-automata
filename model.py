@@ -211,3 +211,4 @@ class ColonyModel(mesa.Model):
         self.limit_value(self.pher_food_layer)
         for k, v in self.pher_home_dict.items():
             self.pher_home_dict[k] = self.decay(v)
+

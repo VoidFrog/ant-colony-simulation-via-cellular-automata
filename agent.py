@@ -21,7 +21,7 @@ class AntAgent(mesa.Agent):
         # Initialize with a random activity level between -1 and 1
         self.activity_level = self.random.uniform(-1.0, 1.0)
         self.next_activity_level = self.activity_level
-        self.timer=0
+        self.hunger=0
         # Start as not carrying food
         self.carrying = False
         self.previous_pos = None
@@ -109,7 +109,7 @@ class AntAgent(mesa.Agent):
             if self.random.random() < self.model.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.timer-=0.5
+            self.hunger-=0.5
 
         # Set the new activity level for the *next* step
         # We use this value in the 'advance' method.
@@ -147,7 +147,7 @@ class AntAgent(mesa.Agent):
         Determines the next step based on the objective function.
         """
         if not self.carrying:
-            self.timer+=1
+            self.hunger+=1
         possible_steps = list(self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False))
         if self.previous_pos is not None:
             possible_steps.remove(self.previous_pos)
@@ -168,7 +168,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying and self.model.food[x, y] > 0:
             self.model.food[x, y] -= 1
             self.carrying = True
-            self.timer=0
+            self.hunger=0
             for agent in self.model.grid.get_cell_list_contents([next_pos]):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)
@@ -183,9 +183,10 @@ class AntAgent(mesa.Agent):
             self.model.pher_food_layer.modify_cell((x, y), lambda c: c + self.model.pher_drop)
         else:
             self.model.pher_home_dict[self][x, y] += self.model.pher_drop
-        if self.timer>10:
+        if self.hunger>self.model.max_dist():
             self.remove()
             self.model.pher_home_dict.pop(self)
+            self.model.grid.remove_agent(self)
 
 
 
@@ -205,12 +206,12 @@ class FoodPatch(mesa.Agent):
 
     def step(self):
         # Optional regrowth
-        self._regen_timer += 1
-        if self._regen_timer >= 40 and self.amount < 3:
+        self._regen_hunger += 1
+        if self._regen_hunger >= 40 and self.amount < 3:
             self.amount += 1
             x, y = self.pos
             self.model.food[x, y] = min(self.model.food[x, y] + 1, 3)
-            self._regen_timer = 0
+            self._regen_hunger = 0
         pass
 
 

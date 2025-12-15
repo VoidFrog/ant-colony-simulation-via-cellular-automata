@@ -165,6 +165,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying and self.model.food[x, y] > 0:
             self.model.food[x, y] -= 1
             self.carrying = True
+            self.timer=0
             for agent in self.model.grid.get_cell_list_contents([next_pos]):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)

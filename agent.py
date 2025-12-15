@@ -144,7 +144,8 @@ class AntAgent(mesa.Agent):
         """
         Determines the next step based on the objective function.
         """
-        self.timer+=1
+        if not self.carrying:
+            self.timer+=1
         possible_steps = list(self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False))
         if self.previous_pos is not None:
             possible_steps.remove(self.previous_pos)
@@ -180,7 +181,7 @@ class AntAgent(mesa.Agent):
             self.model.pher_food_layer.modify_cell((x, y), lambda c: c + self.model.pher_drop)
         else:
             self.model.pher_home_dict[self][x, y] += self.model.pher_drop
-        if self.timer>10 and not self.carrying and self.random.random() > 0.5:
+        if self.timer>10:
             self.remove()
 class FoodPatch(mesa.Agent):
     """

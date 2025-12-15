@@ -173,11 +173,17 @@ class ColonyModel(mesa.Model):
     def birth_agents(self):
         uid = 100_000
         width , height = self.grid.width, self.grid.height
-        if get_active_ant_percentage(self)/100>0.9 or get_active_ant_percentage(self)/100<0.05 or len(self.agents)<2:
-            if self.random.random()>0.05:
-                a = AntAgent(uid, self)
-                self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
-                self.grid.place_agent(a, self.nest_pos)
+        bprob=0.0
+        if get_active_ant_percentage(self) / 100 < 0.05 or len(self.agents) < 2:
+            bprob=0.5
+        else:
+            bprob=0.1
+        if self.random.random() >= bprob:
+            a = AntAgent(uid, self)
+            self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
+            self.grid.place_agent(a, self.nest_pos)
+
+
     def step(self):
         """
         Advance the model by one step.
@@ -188,6 +194,7 @@ class ColonyModel(mesa.Model):
         self.agents.do("step")
         # 2. All agents apply their new state.
         self.agents.do("advance")
+        self.birth_agents()
         # 3. All pheromone layers apply their new state.
         self.decay_layer(self.pher_food_layer)
         self.diffuse_layer(self.pher_food_layer)

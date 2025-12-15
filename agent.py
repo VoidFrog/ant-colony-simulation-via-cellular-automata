@@ -25,6 +25,7 @@ class AntAgent(mesa.Agent):
         self.next_activity_level = self.activity_level
         self.hunger = 0
         self.age = 0
+        self.is_dead = False
         # Start as not carrying food
         self.carrying = False
         self.previous_pos = None
@@ -89,8 +90,10 @@ class AntAgent(mesa.Agent):
             return
         
         if self.age >= 60:
-            self.remove()
+            self.is_dead = True
             self.colony.pher_home_dict.pop(self)
+            self.remove()
+            return
 
         self.age += 1
 
@@ -136,7 +139,7 @@ class AntAgent(mesa.Agent):
             return
 
         if not self.carrying:
-            self.hunger+=1
+            self.hunger += 1
 
         current_position = cast(Tuple[int, int], self.pos)
         previous_position = cast(Tuple[int, int], self.previous_pos)
@@ -179,7 +182,8 @@ class AntAgent(mesa.Agent):
             self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.colony.pher_drop)
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
-        if self.hunger>10:
+        if self.hunger > 10:
+            self.is_dead = True
             self.remove()
             if self in self.colony.pher_home_dict:
                 self.colony.pher_home_dict.pop(self)

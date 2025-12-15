@@ -8,6 +8,7 @@ from mesa import Agent
 if TYPE_CHECKING:
     from model import ColonyModel
 
+
 class AntAgent(mesa.Agent):
     """
     An agent implementing the Mobile Cellular Automata (MCA) model
@@ -22,7 +23,8 @@ class AntAgent(mesa.Agent):
         # Initialize with a random activity level between -1 and 1
         self.activity_level = self.random.uniform(-1.0, 1.0)
         self.next_activity_level = self.activity_level
-        self.timer=0
+        self.timer = 0
+        self.age = 0
         # Start as not carrying food
         self.carrying = False
         self.previous_pos = None
@@ -83,51 +85,23 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        """
-        This method executes the core mathematical model from the
-        Cole & Cheshire (1996) paper at each time step.
 
-        This calculates the *next* state.
-        """
+        if self.age >= 60:
+            self.remove()
+            self.colony.pher_home_dict.pop(self)
 
-        # 1. Calculate S_t (Internal Dynamics / Self-Interaction)
-        # S_t = g * A_t
-        # This term makes activity naturally decay if the ant is alone.
+        self.age += 1
+
         S_t = self.colony.g * self.activity_level
-
-        # 2. Calculate the Interaction Term
-        # g * Σ(J_ij * A_kt)
         interaction_term = self.colony.g * self.get_interaction_sum()
-
-        # 3. Calculate new A_{t+1}
-        # A_{t+1} = Tanh( [interaction term] + S_t )
-        # #eghm, pointer below, this WAS the equation, but now it's not, look at the next_activity_level
-        # Tanh is used to keep the value between -1 and 1.
-
-        # HAPPY CREATIVE GLUE AND DELUSION POWERS USAGE HERE
         next_activity_level = math.tanh(interaction_term + self.colony.g * S_t)
-        # this little addon in the equation was made by myself as the model
-        # didn't behave correctly. We should search for the reason, but for
-        # the time being, current change looks okay. SHOULD BE TESTED ON ALL OF THE CONFIGS.
-        # or maybe im blind and cannot read, oh well, you should double sanity check this deranged piece of code :3
 
-        # 4. Handle Spontaneous Activation
-        # If the ant is inactive, it has a chance to become active.
-        # "a single unit is activated with a constant probability if it is inactive"
-        # "A randomly activated ant has an activity level of 0.01"
         if self.state == 'inactive':
             if self.random.random() < self.colony.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.timer-=0.5
-
-        # Set the new activity level for the *next* step
-        # We use this value in the 'advance' method.
+            self.timer -= 0.5
         self.next_activity_level = next_activity_level
-
-        # 5. Move if active
-        # "If an ant is active, it will move randomly to one of the
-        # neighboring lattice points that is not currently occupied"
         if self.state == 'active':
             self.move()
 
@@ -204,8 +178,6 @@ class AntAgent(mesa.Agent):
                 self.colony.pher_home_dict.pop(self)
 
 
-
-
 class FoodPatch(mesa.Agent):
     """
     A food patch agent for the purpose of food visualisation with an optional way of regrowth
@@ -241,9 +213,6 @@ class FoodPatch(mesa.Agent):
                 self._regen_timer = 0
         elif self.amount == 0:
             self.depleted = True
-
-
-
 
 
 class Nest(mesa.Agent):

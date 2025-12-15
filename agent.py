@@ -108,6 +108,8 @@ class AntAgent(mesa.Agent):
         if self.state == 'inactive':
             if self.random.random() < self.model.prob_spontaneous_activation:
                 next_activity_level = 0.01
+        if self.state == 'inactive':
+            self.timer+=1
 
         # Set the new activity level for the *next* step
         # We use this value in the 'advance' method.
@@ -183,6 +185,7 @@ class AntAgent(mesa.Agent):
             self.model.pher_home_dict[self][x, y] += self.model.pher_drop
         if self.timer>10:
             self.remove()
+            self.model.pher_home_dict.pop(self)
 
 
 

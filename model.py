@@ -193,12 +193,16 @@ class ColonyModel(mesa.Model):
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
             self.grid.place_agent(a, self.nest_pos)
 
-
     def step(self):
         """
         Advance the model by one step.
         """
         self.datacollector.collect(self)
+
+        # remove dead ants
+        for agent in list(self.agents):
+            if agent.is_dead:
+                agent.remove()
 
         # 1. All agents calculate their next state based on the current state.
         self.agents.do("step")

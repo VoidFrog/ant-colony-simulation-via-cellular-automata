@@ -86,13 +86,8 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        if self.pos is None:
-            return
-        
-        if self.age >= 60:
+        if self.age >= 60 or self.hunger >= 20:
             self.is_dead = True
-            self.colony.pher_home_dict.pop(self)
-            self.remove()
             return
 
         self.age += 1
@@ -105,8 +100,9 @@ class AntAgent(mesa.Agent):
             if self.random.random() < self.colony.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.hunger -= 0.5
+            self.hunger += 1
         self.next_activity_level = next_activity_level
+
         if self.state == 'active':
             self.move()
 
@@ -135,9 +131,6 @@ class AntAgent(mesa.Agent):
         """
         Determines the next step based on the objective function.
         """
-        if self.pos is None:
-            return
-
         if not self.carrying:
             self.hunger += 1
 
@@ -182,11 +175,7 @@ class AntAgent(mesa.Agent):
             self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.colony.pher_drop)
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
-        if self.hunger > 10:
-            self.is_dead = True
-            self.remove()
-            if self in self.colony.pher_home_dict:
-                self.colony.pher_home_dict.pop(self)
+
 
 
 class FoodPatch(mesa.Agent):

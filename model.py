@@ -97,16 +97,18 @@ class ColonyModel(mesa.Model):
         # These are now guaranteed to be numbers
         # (self.g, self.J_11, etc. were set above)
         # ========================================
-
-        self._scatter_food(nfp, 3)
         if self.scenario=="base":
             i=1
         else:
             self._make_obstacles(self.scenario)
-            for i in range(width):
-                for j in range(height):
-                    if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
-                        self.food[i][j] = 0
+
+        self._scatter_food(nfp, 3)
+        for i in range(width):
+            for j in range(height):
+                if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
+                    self.food[i][j] = 0
+
+
 
         # Create agents
         for i in range(self.num_agents):

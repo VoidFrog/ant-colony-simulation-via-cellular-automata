@@ -61,6 +61,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
+        self.scenario="base"
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -74,7 +75,7 @@ class ColonyModel(mesa.Model):
         self.fpp = float(get_value(fpp))
         self.noise = float(get_value(noise))
         self.sr = float(get_value(sr))
-        self.nest_pos = (width -width//10 , height - height//10)
+        self.nest_pos = (width//2 ,height//2)
         self.max_dist = (width // 2 + height // 2)
         if final_seed is not None:
             try:
@@ -98,11 +99,14 @@ class ColonyModel(mesa.Model):
         # ========================================
 
         self._scatter_food(nfp, 3)
-        self._make_obstacles("rock")
-        for i in range(width):
-            for j in range(height):
-                if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
-                    self.food[i][j] = 0
+        if self.scenario=="base":
+            i=1
+        else:
+            self._make_obstacles(self.scenario)
+            for i in range(width):
+                for j in range(height):
+                    if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
+                        self.food[i][j] = 0
 
         # Create agents
         for i in range(self.num_agents):
@@ -134,6 +138,10 @@ class ColonyModel(mesa.Model):
     def _make_obstacles(self, tname):
         if tname =="rock":
             self.obstacles = templates.dwayne
+            self.nest_pos =(self.width -self.width//10 , self.height - self.height//10)
+        if tname =="tunnel":
+            self.obstacles = templates.tunnel
+            self.nest_pos =(41,44)
         for i in range(self.width):
             for j in range(self.height):
                 if self.obstacles[i,j]!=0:

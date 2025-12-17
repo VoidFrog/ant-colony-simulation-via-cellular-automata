@@ -12,7 +12,7 @@ from mesa.visualization.components import PropertyLayerStyle
 from solara import InputInt
 
 from model import ColonyModel
-from agent import AntAgent, FoodPatch, Nest
+from agent import AntAgent, FoodPatch, Nest, Obstacle
 
 
 def agent_portrayal(agent):
@@ -39,6 +39,8 @@ def agent_portrayal(agent):
             portrayal["size"] = 100
     elif isinstance(agent, Nest):
         portrayal = {"marker": "s", "color": "#541608", "size": 100}
+    elif isinstance(agent, Obstacle):
+        portrayal = {"marker": "s", "color": "#4A4A4A", "size":100}
     else:
         return
     return portrayal

@@ -1,7 +1,7 @@
 import mesa
 import numpy as np
 import math
-from agent import AntAgent
+from agent import AntAgent, Obstacle
 from agent import FoodPatch
 from agent import Nest
 from mesa.space import PropertyLayer
@@ -131,6 +131,12 @@ class ColonyModel(mesa.Model):
     def _make_obstacles(self, tname):
         if tname =="rock":
             self.obstacles = templates.dwayne
+        for i in range(self.width):
+            for j in range(self.height):
+                if self.obstacles[i,j]!=0:
+                    obstacle = Obstacle(self.uid, self)
+                    self.grid.place_agent(obstacle, (i,j))
+                    self.uid+=1
     def _scatter_food(self, n_patches, r):
         W, H = self.grid.width, self.grid.height
         for _ in range(n_patches):

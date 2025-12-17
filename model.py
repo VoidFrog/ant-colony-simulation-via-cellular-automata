@@ -1,3 +1,5 @@
+import random
+
 import mesa
 import numpy as np
 import math
@@ -101,6 +103,7 @@ class ColonyModel(mesa.Model):
             for j in range(height):
                 if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
                     self.food[i][j] = 0
+
         # Create agents
         for i in range(self.num_agents):
             a = AntAgent(self.uid, self)
@@ -145,7 +148,7 @@ class ColonyModel(mesa.Model):
             radius = self.random.randrange(1, 4)
             for x in range(W):
                 for y in range(H):
-                    if (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2:
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2 and not self.obstacles[cx,cy]!=0:
                         self.food[x, y] += self.fpp
 
         # eliminate food from nearby the nest

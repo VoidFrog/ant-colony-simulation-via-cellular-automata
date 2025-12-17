@@ -99,8 +99,8 @@ class ColonyModel(mesa.Model):
         self._make_obstacles("rock")
         for i in range(width):
             for j in range(height):
-                if self.obstacles[i][j] !=0 and self.food[i][j] !=0:
-                    self.food[i][j] =0
+                if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
+                    self.food[i][j] = 0
         # Create agents
         for i in range(self.num_agents):
             a = AntAgent(self.uid, self)
@@ -199,7 +199,6 @@ class ColonyModel(mesa.Model):
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
             self.grid.place_agent(a, self.nest_pos)
 
-
     def step(self):
         """
         Advance the model by one step.
@@ -217,4 +216,10 @@ class ColonyModel(mesa.Model):
         self.limit_value(self.pher_food_layer)
         for k, v in self.pher_home_dict.items():
             self.pher_home_dict[k] = self.decay(v)
+
+        # remove dead ants
+        for agent in list(self.agents):
+            if isinstance(agent, AntAgent) and agent.is_dead:
+                self.pher_home_dict.pop(agent)
+                agent.remove()
 

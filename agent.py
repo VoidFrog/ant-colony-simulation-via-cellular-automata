@@ -25,6 +25,7 @@ class AntAgent(mesa.Agent):
         self.next_activity_level = self.activity_level
         self.hunger = 0
         self.age = 0
+        self.is_dead = False
         # Start as not carrying food
         self.carrying = False
         self.previous_pos = None
@@ -85,12 +86,9 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        if self.pos is None:
+        if self.age >= 120 or self.hunger >= 80:
+            self.is_dead = True
             return
-        
-        if self.age >= 60:
-            self.remove()
-            self.colony.pher_home_dict.pop(self)
 
         self.age += 1
 
@@ -102,8 +100,9 @@ class AntAgent(mesa.Agent):
             if self.random.random() < self.colony.prob_spontaneous_activation:
                 next_activity_level = 0.01
         if self.state == 'inactive':
-            self.hunger -= 0.5
+            self.hunger += 1
         self.next_activity_level = next_activity_level
+
         if self.state == 'active':
             self.move()
 
@@ -123,6 +122,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying:
             util += 3.0 * self.colony.food[x, y]
             util += 1.0 * self.colony.pher_food_layer.data[x, y]
+            util += 0.2 * (self.dist_to_nest(pos_next) - self.dist_to_nest(self.pos))
         else:
             util += 2.0 * self.colony.pher_home_dict[self][x, y]
             util += 0.2 * (self.colony.max_dist - self.dist_to_nest(pos_next))
@@ -132,11 +132,8 @@ class AntAgent(mesa.Agent):
         """
         Determines the next step based on the objective function.
         """
-        if self.pos is None:
-            return
-
         if not self.carrying:
-            self.hunger+=1
+            self.hunger += 1
 
         current_position = cast(Tuple[int, int], self.pos)
         previous_position = cast(Tuple[int, int], self.previous_pos)
@@ -145,12 +142,12 @@ class AntAgent(mesa.Agent):
         if self.previous_pos is not None:
             possible_steps.remove(previous_position)
 
-        possible_steps = [step for step in possible_steps if self.colony.obstacles[step] == 0]
+        possible_steps = [step for step in possible_steps if self.colony.obstacles[step[0]][step[1]] == 0]
 
         score = [(self.objective(m), m) for m in possible_steps]
         best_move = max(s for s, _ in score)
 
-        if self.random.random() < self.colony.noise or best_move < 0.1:
+        if self.random.random() > best_move:
             next_pos = self.random.choice(possible_steps)
         else:
             cnd = [m for s, m in score if s == best_move]
@@ -179,10 +176,7 @@ class AntAgent(mesa.Agent):
             self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.colony.pher_drop)
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
-        if self.hunger>10:
-            self.remove()
-            if self in self.colony.pher_home_dict:
-                self.colony.pher_home_dict.pop(self)
+
 
 
 class FoodPatch(mesa.Agent):

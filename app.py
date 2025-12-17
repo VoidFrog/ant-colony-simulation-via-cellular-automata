@@ -23,12 +23,15 @@ def agent_portrayal(agent):
     portrayal: Dict[str, Any] = {"marker": "o"}
     
     if isinstance(agent, AntAgent):
-        if agent.state == 'active':
-            portrayal["color"] = "#FF0000"  # Red
-            portrayal["size"] = 60  # 's' is size (area), not radius
+        if agent.is_dead:
+            return {}
         else:
-            portrayal["color"] = "#333333"  # Dark Gray
-            portrayal["size"] = 30
+            if agent.state == 'active':
+                portrayal["color"] = "#FF0000"  # Red
+                portrayal["size"] = 60  # 's' is size (area), not radius
+            else:
+                portrayal["color"] = "#333333"  # Dark Gray
+                portrayal["size"] = 30
     elif isinstance(agent, FoodPatch):
         portrayal["marker"] = "s"
         if agent.state == 'full':

@@ -61,7 +61,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = "rock"
+        self.scenario = "rock" # possible values: base (no obstacles), rock (one rock generated), tunnel (nest inside a tunnel)
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))

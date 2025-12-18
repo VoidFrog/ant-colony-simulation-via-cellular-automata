@@ -100,7 +100,7 @@ class ColonyModel(mesa.Model):
         if self.scenario == "base":
             i = 1
         else:
-            self._make_obstacles(self.scenario)
+            self._make_obstacles(self.scenario, width, height)
 
         self._scatter_food(nfp, 3)
         for i in range(width):
@@ -135,15 +135,15 @@ class ColonyModel(mesa.Model):
                              "FoodDelivered": get_food_delivered_percentage},
             agent_reporters={"ActivityLevel": "activity_level", "State": "state"})
 
-    def _make_obstacles(self, tname):
+    def _make_obstacles(self, tname, width, height):
         if tname == "rock":
             self.obstacles = templates.dwayne
-            self.nest_pos = (self.width - self.width//10, self.height - self.height//10)
+            self.nest_pos = (width - width//10, height - height//10)
         if tname == "tunnel":
             self.obstacles = templates.tunnel
             self.nest_pos = (41, 44)
-        for i in range(self.width):
-            for j in range(self.height):
+        for i in range(width):
+            for j in range(height):
                 if self.obstacles[i, j] != 0:
                     obstacle = Obstacle(self.uid, self)
                     self.grid.place_agent(obstacle, (i, j))

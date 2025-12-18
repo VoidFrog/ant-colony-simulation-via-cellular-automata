@@ -208,11 +208,11 @@ class ColonyModel(mesa.Model):
     def birth_agents(self):
         width, height = self.grid.width, self.grid.height
         bprob = 0.0
-        if get_active_ant_percentage(self) / 100 < 0.05 or len(self.agents) < 2:
+        if get_active_ant_percentage(self) / 100 < 0.05:
             bprob = 0.5
         else:
             bprob = 0.1
-        if self.random.random() >= bprob:
+        if self.random.random() <= bprob:
             a = AntAgent(self.uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
             self.grid.place_agent(a, self.nest_pos)

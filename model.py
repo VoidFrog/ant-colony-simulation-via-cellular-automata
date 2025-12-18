@@ -61,7 +61,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = "base"
+        self.scenario = "rock"
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -144,7 +144,7 @@ class ColonyModel(mesa.Model):
             self.nest_pos = (41, 44)
         for i in range(width):
             for j in range(height):
-                if self.obstacles[i, j] != 0:
+                if self.obstacles[i][j] != 0:
                     obstacle = Obstacle(self.uid, self)
                     self.grid.place_agent(obstacle, (i, j))
                     self.uid += 1
@@ -157,7 +157,7 @@ class ColonyModel(mesa.Model):
             radius = self.random.randrange(1, 4)
             for x in range(W):
                 for y in range(H):
-                    if (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2 and not self.obstacles[cx,cy]!=0:
+                    if (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2 and not self.obstacles[cx][cy] != 0:
                         self.food[x, y] += self.fpp
 
         # eliminate food from nearby the nest

@@ -144,7 +144,7 @@ class ColonyModel(mesa.Model):
             self.nest_pos = (41, 44)
         for i in range(width):
             for j in range(height):
-                if self.obstacles[i][j] != 0:
+                if self.obstacles[i][j] != 0 and (self.obstacles[i-1][j]==0 or self.obstacles[i][j+1]==0 or self.obstacles[i+1][j]==0 or self.obstacles[i][j-1]==0 or self.obstacles[i+1][j]==0):
                     obstacle = Obstacle(self.uid, self)
                     self.grid.place_agent(obstacle, (i, j))
                     self.uid += 1

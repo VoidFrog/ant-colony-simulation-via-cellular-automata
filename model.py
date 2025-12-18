@@ -211,7 +211,7 @@ class ColonyModel(mesa.Model):
         if get_active_ant_percentage(self) / 100 < 0.05:
             bprob = 0.5
         else:
-            bprob = 0.1
+            bprob = 0.3
         if self.random.random() <= bprob:
             a = AntAgent(self.uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)

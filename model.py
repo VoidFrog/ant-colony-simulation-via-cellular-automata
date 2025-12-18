@@ -61,7 +61,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario="base"
+        self.scenario = "base"
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -97,8 +97,8 @@ class ColonyModel(mesa.Model):
         # These are now guaranteed to be numbers
         # (self.g, self.J_11, etc. were set above)
         # ========================================
-        if self.scenario=="base":
-            i=1
+        if self.scenario == "base":
+            i = 1
         else:
             self._make_obstacles(self.scenario)
 
@@ -107,8 +107,6 @@ class ColonyModel(mesa.Model):
             for j in range(height):
                 if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
                     self.food[i][j] = 0
-
-
 
         # Create agents
         for i in range(self.num_agents):
@@ -138,18 +136,19 @@ class ColonyModel(mesa.Model):
             agent_reporters={"ActivityLevel": "activity_level", "State": "state"})
 
     def _make_obstacles(self, tname):
-        if tname =="rock":
+        if tname == "rock":
             self.obstacles = templates.dwayne
-            self.nest_pos =(self.width -self.width//10 , self.height - self.height//10)
-        if tname =="tunnel":
+            self.nest_pos = (self.width - self.width//10, self.height - self.height//10)
+        if tname == "tunnel":
             self.obstacles = templates.tunnel
-            self.nest_pos =(41,44)
+            self.nest_pos = (41, 44)
         for i in range(self.width):
             for j in range(self.height):
-                if self.obstacles[i,j]!=0:
+                if self.obstacles[i, j] != 0:
                     obstacle = Obstacle(self.uid, self)
-                    self.grid.place_agent(obstacle, (i,j))
-                    self.uid+=1
+                    self.grid.place_agent(obstacle, (i, j))
+                    self.uid += 1
+
     def _scatter_food(self, n_patches, r):
         W, H = self.grid.width, self.grid.height
         for _ in range(n_patches):

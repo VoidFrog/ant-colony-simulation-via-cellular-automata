@@ -138,7 +138,7 @@ class ColonyModel(mesa.Model):
     def _make_obstacles(self, tname, width, height):
         if tname == "rock":
             self.obstacles = templates.dwayne
-            self.nest_pos = (width - width//10, height - height//10)
+            self.nest_pos = (width - 9*width//10, height - height//10)
         if tname == "tunnel":
             self.obstacles = templates.tunnel
             self.nest_pos = (41, 44)

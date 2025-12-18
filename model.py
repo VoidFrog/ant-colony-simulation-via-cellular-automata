@@ -30,6 +30,11 @@ def get_food_delivered_percentage(model):
     return model.food_delivered / (model.nfp * model.fpp)
 
 
+def get_ants_alive(model):
+    ants_agents = model.agents.select(lambda agent: isinstance(agent, AntAgent))
+    return len(ants_agents)
+
+
 class ColonyModel(mesa.Model):
     """
     The main model, now holding the parameters from the paper.
@@ -132,7 +137,8 @@ class ColonyModel(mesa.Model):
         self.food_delivered = 0
         self.datacollector = mesa.DataCollector(
             model_reporters={"ActiveAntPercentage": get_active_ant_percentage,
-                             "FoodDelivered": get_food_delivered_percentage},
+                             "FoodDelivered": get_food_delivered_percentage,
+                             "AntsAlive": get_ants_alive},
             agent_reporters={"ActivityLevel": "activity_level", "State": "state"})
 
     def _make_obstacles(self, tname, width, height):
@@ -200,12 +206,12 @@ class ColonyModel(mesa.Model):
         layer.set_cells(10.0, lambda x: True if x > 10.0 else False)
 
     def birth_agents(self):
-        width , height = self.grid.width, self.grid.height
-        bprob=0.0
+        width, height = self.grid.width, self.grid.height
+        bprob = 0.0
         if get_active_ant_percentage(self) / 100 < 0.05 or len(self.agents) < 2:
-            bprob=0.5
+            bprob = 0.5
         else:
-            bprob=0.1
+            bprob = 0.1
         if self.random.random() >= bprob:
             a = AntAgent(self.uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)

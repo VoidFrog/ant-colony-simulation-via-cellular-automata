@@ -122,7 +122,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying:
             util += 3.0 * self.colony.food[x, y]
             util += 1.0 * self.colony.pher_food_layer.data[x, y]
-            # util += 0.1 * (self.dist_to_nest(pos_next) - self.dist_to_nest(self.pos))
+            util += 0.05 * (self.dist_to_nest(pos_next) - self.dist_to_nest(self.pos))
         else:
             util += 2.0 * self.colony.pher_home_dict[self][x, y]
             util += 0.2 * (self.colony.max_dist - self.dist_to_nest(pos_next))

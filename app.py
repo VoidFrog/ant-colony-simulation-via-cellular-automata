@@ -48,6 +48,7 @@ def agent_portrayal(agent):
         return
     return portrayal
 
+
 def propertylayer_portrayal(layer):
     if layer.name == "pher_food":
         return PropertyLayerStyle(color="blue", alpha=0.8, vmin=0, vmax=10,colorbar=True)
@@ -104,6 +105,9 @@ chart1 = make_plot_component(
 chart2 = make_plot_component(
     ["FoodDelivered"]
 )
+chart3 = make_plot_component(
+    ["AntsAlive"]
+)
 
 # Create the visualization grid component
 # grid = make_space_component(
@@ -119,7 +123,7 @@ page = SolaraViz(
     model=initial_model,
     renderer=renderer,
     model_params=model_params,
-    components=[chart1, chart2], #type: ignore
+    components=[chart1, chart2, chart3], #type: ignore
     name="Cole & Cheshire (1996) MCA Model"
 )
 

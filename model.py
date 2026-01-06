@@ -128,9 +128,9 @@ class ColonyModel(mesa.Model):
             self._make_obstacles(self.scenario, width, height)
 
         if not self.hunger_flag:
-            self.hunger_threshold = -np.inf
+            self.hunger_threshold = np.inf
         if not self.age_flag:
-            self.age_threshold = -np.inf
+            self.age_threshold = np.inf
 
         self._scatter_food(self.nfp, 3)
         for i in range(width):

@@ -27,8 +27,12 @@ def agent_portrayal(agent):
             return {}
         else:
             if agent.state == 'active':
-                portrayal["color"] = "#FF0000"  # Red
-                portrayal["size"] = 60  # 's' is size (area), not radius
+                if agent.state_2 == 'carrying':
+                    portrayal["color"] = "#12D400"  # Green
+                    portrayal["size"] = 60
+                else:
+                    portrayal["color"] = "#FF0000"  # Red
+                    portrayal["size"] = 60
             else:
                 portrayal["color"] = "#333333"  # Dark Gray
                 portrayal["size"] = 30
@@ -51,7 +55,7 @@ def agent_portrayal(agent):
 
 def propertylayer_portrayal(layer):
     if layer.name == "pher_food":
-        return PropertyLayerStyle(color="blue", alpha=0.8, vmin=0, vmax=10,colorbar=True)
+        return PropertyLayerStyle(color="blue", alpha=1.4, vmin=0, vmax=15, colorbar=True)
 
 # Define grid size
 GRID_WIDTH = 50
@@ -100,7 +104,6 @@ initial_model = ColonyModel(**initial_params)
 # Create the chart
 chart1 = make_plot_component(
     ["ActiveAntPercentage"]
-
 )
 chart2 = make_plot_component(
     ["FoodDelivered"]

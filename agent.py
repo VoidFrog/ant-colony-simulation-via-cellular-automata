@@ -49,6 +49,15 @@ class AntAgent(mesa.Agent):
         """
         return 'active' if self.activity_level > 0 else 'inactive'
 
+    @property
+    def state_2(self):
+        """
+        A derived property. The paper defines an ant as 'active'
+        if its activity level (A_t) is greater than zero.
+        This is useful for the visualization.
+        """
+        return 'carrying' if self.carrying > 0 else 'foraging'
+
     def dist_to_nest(self, pos):
         """
         Calculates the distance between the current position and the nest
@@ -89,11 +98,9 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        if self.hunger >= self.colony.age_threshold:
+        if self.hunger >= self.colony.hunger_threshold:
             self.is_dead = True
             return
-
-        # self.age += 1
 
         S_t = self.colony.g * self.activity_level
         interaction_term = self.colony.g * self.get_interaction_sum()
@@ -116,49 +123,55 @@ class AntAgent(mesa.Agent):
         """
         self.activity_level = self.next_activity_level
 
-    def objective(self, pos_next: Tuple[int, int]) -> float:
+    def objective(self, pos_next: Tuple[int, int], current_density) -> float:
         """
-        A function to used to determine pathing based on available pheromones and if the agent has acquired food
+        A function to used to determine pathing based on available pheromones
         """
         x, y = pos_next
-        util = 0.0
+        weight = 0.0
+        diff = self.colony.pher_food_layer.data[x, y] - current_density
+
         if not self.carrying:
-            util += 3.0 * self.colony.food[x, y]
-            util += 1.0 * self.colony.pher_food_layer.data[x, y]
-            util += 0.05 * (self.dist_to_nest(pos_next) - self.dist_to_nest(self.pos))
+            if diff < 0:
+                weight = 10.0 ** (-6)
+            elif diff == 0:
+                weight = 1.0
+            else:
+                weight = 1.0 + diff
         else:
-            util += 2.0 * self.colony.pher_home_dict[self][x, y]
-            util += 0.2 * (self.colony.max_dist - self.dist_to_nest(pos_next))
-        return util
+            weight += 2.0 * self.colony.pher_home_dict[self][x, y]
+            weight += 2.0 * (self.dist_to_nest(self.pos) - self.dist_to_nest(pos_next))
+        return weight
 
     def exponential_decay(self, t):
-        return self.colony.pher_drop * np.exp(-1.5 * t)
+        return self.colony.pher_drop * np.exp(-0.2 * t)
 
     def move(self):
-        """
-        Determines the next step based on the objective function.
-        """
+        cp = cast(Tuple[int, int], self.pos)
+        next_pos = None
+
+        # Getting neighbor tiles
+        possible_steps = list(self.colony.grid.get_neighborhood(cp, moore=True, include_center=False))
+        # Discarding tiles with obstacles
+        possible_steps = list([step for step in possible_steps if self.colony.obstacles[step[0]][step[1]] == 0])
+        # calculating score for each tile
+        score = [self.objective(m, self.colony.pher_food_layer.data[cp[0], cp[1]]) for m in possible_steps]
+
         if not self.carrying:
             self.hunger += 1
-
-        current_position = cast(Tuple[int, int], self.pos)
-        previous_position = cast(Tuple[int, int], self.previous_pos)
-
-        possible_steps = list(self.colony.grid.get_neighborhood(current_position, moore=True, include_center=False))
-        if self.previous_pos is not None:
-            possible_steps.remove(previous_position)
-
-        possible_steps = [step for step in possible_steps if self.colony.obstacles[step[0]][step[1]] == 0]
-
-        score = [(self.objective(m), m) for m in possible_steps]
-        best_move = max(s for s, _ in score)
-
-        if self.random.random() > best_move:
-            next_pos = self.random.choice(possible_steps)
+            total_score = np.sum(score)
+            probability = [p / total_score for p in score]
+            indices = [i for i in range(len(score))]
+            index = np.random.choice(indices, None, True, probability)
+            next_pos = possible_steps[index]
         else:
-            cnd = [m for s, m in score if s == best_move]
-            next_pos = self.random.choice(cnd)
+            best_move = np.max(score)
+            for i in range(8):
+                if score[i] == best_move:
+                    next_pos = possible_steps[i]
+                    break
 
+        # move ant after calculating next position
         self.previous_pos = self.pos
         self.colony.grid.move_agent(self, next_pos)
         x, y = next_pos[0], next_pos[1]

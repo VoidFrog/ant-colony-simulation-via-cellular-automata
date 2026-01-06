@@ -75,7 +75,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = Scenario.BASEAH  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
+        self.scenario = Scenario.NOHUNGER  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -92,8 +92,6 @@ class ColonyModel(mesa.Model):
         self.nest_pos = (width // 2, height // 2)
         self.max_dist = (width // 2 + height // 2)
         self.hunger_flag = True
-        self.age_flag = True
-        self.age_threshold = 120
         self.hunger_threshold = 80
         if final_seed is not None:
             try:
@@ -115,24 +113,18 @@ class ColonyModel(mesa.Model):
         # These are now guaranteed to be numbers
         # (self.g, self.J_11, etc. were set above)
         # ========================================
-        if self.scenario == Scenario.BASE:
-            self.age_flag = False
-        elif self.scenario == Scenario.BASENHA:
+        if self.scenario == Scenario.NOHUNGER:
             self.hunger_flag = False
-            self.age_flag = False
-            self.nfp = 0
         elif self.scenario == Scenario.BASEA:
-            self.hunger_flag = False
+            self.hunger_flag = True
             self.nfp = 0
-        elif self.scenario == Scenario.BASEAH:
+        elif self.scenario == Scenario.BASENHA:
             i = 1
         else:
             self._make_obstacles(self.scenario, width, height)
 
         if not self.hunger_flag:
             self.hunger_threshold = np.inf
-        if not self.age_flag:
-            self.age_threshold = np.inf
 
         self._scatter_food(self.nfp, 3)
         for i in range(width):
@@ -233,7 +225,10 @@ class ColonyModel(mesa.Model):
                 layer.set_cell((i, j), result)
 
     def limit_value(self, layer):
-        layer.set_cells(10.0, lambda x: True if x > 10.0 else False)
+        layer.set_cells(15.0, lambda x: True if x > 15.0 else False)
+
+    def clean_layer(self, layer):
+        layer.set_cells(0.0, lambda x: True if x < 0.05 else False)
 
     def birth_agents(self):
         width, height = self.grid.width, self.grid.height
@@ -257,12 +252,13 @@ class ColonyModel(mesa.Model):
         self.agents.do("step")
         # 2. All agents apply their new state.
         self.agents.do("advance")
-        if self.age_flag or self.hunger_flag:
+        if self.hunger_flag:
             self.birth_agents()
         # 3. All pheromone layers apply their new state.
         self.decay_layer(self.pher_food_layer)
         self.diffuse_layer(self.pher_food_layer)
         self.limit_value(self.pher_food_layer)
+        self.clean_layer(self.pher_food_layer)
         for k, v in self.pher_home_dict.items():
             self.pher_home_dict[k] = self.decay(v)
 

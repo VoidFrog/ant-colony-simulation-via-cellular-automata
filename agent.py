@@ -3,6 +3,7 @@ from typing import Tuple, cast, TYPE_CHECKING
 import mesa
 import math
 
+import numpy as np
 from mesa import Agent
 
 if TYPE_CHECKING:
@@ -23,11 +24,13 @@ class AntAgent(mesa.Agent):
         # Initialize with a random activity level between -1 and 1
         self.activity_level = self.random.uniform(-1.0, 1.0)
         self.next_activity_level = self.activity_level
+        # life cycle based on hunger
         self.hunger = 0
-        self.age = 0
         self.is_dead = False
         # Start as not carrying food
         self.carrying = False
+        self.carrying_time = 0
+        # Previous position
         self.previous_pos = None
 
     @property
@@ -86,11 +89,11 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        if self.age >= self.colony.hunger_threshold or self.hunger >= self.colony.age_threshold:
+        if self.hunger >= self.colony.age_threshold:
             self.is_dead = True
             return
 
-        self.age += 1
+        # self.age += 1
 
         S_t = self.colony.g * self.activity_level
         interaction_term = self.colony.g * self.get_interaction_sum()
@@ -128,6 +131,9 @@ class AntAgent(mesa.Agent):
             util += 0.2 * (self.colony.max_dist - self.dist_to_nest(pos_next))
         return util
 
+    def exponential_decay(self, t):
+        return self.colony.pher_drop * np.exp(-1.5 * t)
+
     def move(self):
         """
         Determines the next step based on the objective function.
@@ -161,7 +167,7 @@ class AntAgent(mesa.Agent):
         if not self.carrying and self.colony.food[x, y] > 0:
             self.colony.food[x, y] -= 1
             self.carrying = True
-            self.hunger=0
+            self.hunger = 0
             for agent in self.colony.grid.get_cell_list_contents([next_pos]):
                 if isinstance(agent, FoodPatch):
                     agent.amount = max(agent.amount - 1, 0)
@@ -170,22 +176,24 @@ class AntAgent(mesa.Agent):
         if self.carrying and ((x, y) == self.colony.nest_pos):
             self.colony.food_delivered += 1
             self.carrying = False
+            self.carrying_time = 0
 
         # dropping pheromones based on carrying status
         if self.carrying:
-            self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.colony.pher_drop)
+            self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.exponential_decay(self.carrying_time))
+            self.carrying_time += 1
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
 
 
-
 class FoodPatch(mesa.Agent):
     """
-    A food patch agent for the purpose of food visualisation with an optional way of regrowth
+    A food patch agent for the purpose of food visualisation with a way of regrowth
     """
     def __init__(self, uid, model):
         super().__init__(model)
         self.unique_id = uid
+        self.max_amount = 0
         self.amount = 0
         self._regen_timer = 0
         self.depleted = False
@@ -199,24 +207,18 @@ class FoodPatch(mesa.Agent):
         return 'full' if self.amount > 0 else 'empty'
 
     def step(self):
-        # Optional regrowth
-        self._regen_timer += 1
-
         if self.pos is None:
             return
 
-        if 0 < self.amount < self.colony.fpp:
-            if self.depleted:
-                if self._regen_timer > 60:
-                    self.depleted = False
-                    self._regen_timer = 0
-            elif self._regen_timer >= 5:
-                self.amount += 1
-                x, y = cast(Tuple[int, int], self.pos)
-                self.colony.food[x, y] += 1
+        if self.depleted:
+            self._regen_timer += 1
+            if self._regen_timer == 120:
+                self.amount = self.max_amount
                 self._regen_timer = 0
-        elif self.amount == 0:
-            self.depleted = True
+                self.depleted = False
+        else:
+            if self.state == 'empty':
+                self.depleted = True
 
 
 class Nest(mesa.Agent):
@@ -226,8 +228,9 @@ class Nest(mesa.Agent):
         super().__init__(model)
         self.unique_id = uid
 
+
 class Obstacle(mesa.Agent):
-    """The nest agent for the purpose of visualisation"""
+    """The obstacle agent for the purpose of visualisation"""
     def __init__(self, uid, model):
         super().__init__(model)
         self.unique_id = uid

@@ -75,7 +75,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = Scenario.BASENHA  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
+        self.scenario = Scenario.BASEAH  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -157,6 +157,7 @@ class ColonyModel(mesa.Model):
                 if amount > 0:
                     patch = FoodPatch(self.uid, self)
                     patch.amount = amount
+                    patch.max_amount = amount
                     self.grid.place_agent(patch, (x, y))
                     self.uid += 1
 

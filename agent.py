@@ -86,7 +86,7 @@ class AntAgent(mesa.Agent):
         return interaction_sum
 
     def step(self):
-        if self.age >= 120 or self.hunger >= 80:
+        if self.age >= self.model.hunger_threshold or self.hunger >= self.model.hunger_threshold:
             self.is_dead = True
             return
 

@@ -9,6 +9,8 @@ from agent import Nest
 from mesa.space import PropertyLayer
 import templates
 
+from scenario import Scenario
+
 
 def get_active_ant_percentage(model):
     """
@@ -73,7 +75,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = "basenha"  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
+        self.scenario = Scenario.BASENHA  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -113,16 +115,16 @@ class ColonyModel(mesa.Model):
         # These are now guaranteed to be numbers
         # (self.g, self.J_11, etc. were set above)
         # ========================================
-        if self.scenario == "base":
+        if self.scenario == Scenario.BASE:
             self.age_flag = False
-        elif self.scenario == "basenha":
+        elif self.scenario == Scenario.BASENHA:
             self.hunger_flag = False
             self.age_flag = False
             self.nfp = 0
-        elif self.scenario == "basea":
+        elif self.scenario == Scenario.BASEA:
             self.hunger_flag = False
             self.nfp = 0
-        elif self.scenario == "baseah":
+        elif self.scenario == Scenario.BASEAH:
             i = 1
         else:
             self._make_obstacles(self.scenario, width, height)

@@ -73,7 +73,7 @@ class ColonyModel(mesa.Model):
         final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = "basenha" # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
+        self.scenario = "basenha"  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -87,12 +87,12 @@ class ColonyModel(mesa.Model):
         self.fpp = float(get_value(fpp))
         self.noise = float(get_value(noise))
         self.sr = float(get_value(sr))
-        self.nest_pos = (width//2 ,height//2)
+        self.nest_pos = (width // 2, height // 2)
         self.max_dist = (width // 2 + height // 2)
-        self.hunger_flag=True
-        self.age_flag=True
-        self.age_threshold=120
-        self.hunger_threshold=80
+        self.hunger_flag = True
+        self.age_flag = True
+        self.age_threshold = 120
+        self.hunger_threshold = 80
         if final_seed is not None:
             try:
                 final_seed = int(final_seed)
@@ -103,7 +103,7 @@ class ColonyModel(mesa.Model):
         super().__init__(seed=final_seed)
         self.grid = mesa.space.MultiGrid(width, height, torus=False)
         self.food = np.zeros((width, height), dtype=int)
-        self.obstacles=np.zeros((width, height), dtype=int)
+        self.obstacles = np.zeros((width, height), dtype=int)
         self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=np.float64)
         self.grid.add_property_layer(self.pher_food_layer)
         self.pher_home_dict = {}
@@ -116,20 +116,21 @@ class ColonyModel(mesa.Model):
         if self.scenario == "base":
             self.age_flag = False
         elif self.scenario == "basenha":
-            self.hunger_flag=False
-            self.age_flag=False
-            self.nfp=0
+            self.hunger_flag = False
+            self.age_flag = False
+            self.nfp = 0
         elif self.scenario == "basea":
-            self.hunger_flag=False
-            self.nfp=0
+            self.hunger_flag = False
+            self.nfp = 0
         elif self.scenario == "baseah":
             i = 1
         else:
             self._make_obstacles(self.scenario, width, height)
+
         if not self.hunger_flag:
-            self.hunger_threshold=-np.inf
+            self.hunger_threshold = -np.inf
         if not self.age_flag:
-            self.age_threshold=-np.inf
+            self.age_threshold = -np.inf
 
         self._scatter_food(self.nfp, 3)
         for i in range(width):
@@ -168,13 +169,15 @@ class ColonyModel(mesa.Model):
     def _make_obstacles(self, tname, width, height):
         if tname == "rock":
             self.obstacles = templates.dwayne
-            self.nest_pos = (width - 9*width//10, height - height//10)
+            self.nest_pos = (width - 9 * width // 10, height - height // 10)
         if tname == "tunnel":
             self.obstacles = templates.tunnel
             self.nest_pos = (41, 44)
         for i in range(width):
             for j in range(height):
-                if self.obstacles[i][j] != 0 and (self.obstacles[i-1][j]==0 or self.obstacles[i][j+1]==0 or self.obstacles[i+1][j]==0 or self.obstacles[i][j-1]==0 or self.obstacles[i+1][j]==0):
+                if self.obstacles[i][j] != 0 and (
+                        self.obstacles[i - 1][j] == 0 or self.obstacles[i][j + 1] == 0 or self.obstacles[i + 1][
+                    j] == 0 or self.obstacles[i][j - 1] == 0 or self.obstacles[i + 1][j] == 0):
                     obstacle = Obstacle(self.uid, self)
                     self.grid.place_agent(obstacle, (i, j))
                     self.uid += 1
@@ -266,4 +269,3 @@ class ColonyModel(mesa.Model):
                 self.pher_home_dict.pop(agent)
                 self.grid.remove_agent(agent)
                 agent.remove()
-

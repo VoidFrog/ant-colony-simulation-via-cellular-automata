@@ -27,7 +27,10 @@ def get_food_delivered_percentage(model):
         Helper function for the DataCollector:
         Calculates the percentage of food delivered to the nest.
     """
-    return model.food_delivered / (model.nfp * model.fpp)
+    if model.nfp == 0:
+        return 1
+    else:
+        return model.food_delivered / (model.nfp * model.fpp)
 
 
 def get_ants_alive(model):

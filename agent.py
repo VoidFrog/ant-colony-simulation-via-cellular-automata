@@ -141,7 +141,7 @@ class AntAgent(mesa.Agent):
             else:
                 weight = 1.0 + diff
         else:
-            weight += 2.0 * self.colony.pher_home_dict[self][x, y]
+            weight += 1.0 * self.colony.pher_home_dict[self][x, y]
             weight += 2.0 * (self.dist_to_nest(self.pos) - self.dist_to_nest(pos_next))
         return weight
 

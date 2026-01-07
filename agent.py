@@ -146,7 +146,7 @@ class AntAgent(mesa.Agent):
         return weight
 
     def exponential_decay(self, t):
-        return self.colony.pher_drop * np.exp(-0.08 * t)
+        return self.colony.pher_drop * np.exp(-0.1 * t)
 
     def move(self):
         cp = cast(Tuple[int, int], self.pos)

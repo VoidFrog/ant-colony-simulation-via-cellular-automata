@@ -1,5 +1,7 @@
 from typing import Any, Dict
 import mesa
+from mesa.examples.advanced.sugarscape_g1mt.app import propertylayer_portrayal
+
 from mesa.visualization import (
     SolaraViz, 
     Slider,
@@ -8,9 +10,9 @@ from mesa.visualization import (
     make_space_component
 )
 from mesa.visualization.components import PropertyLayerStyle
+from mesa.visualization.solara_viz import create_space_component
 
 from solara import InputInt
-
 from model import ColonyModel
 from agent import AntAgent, FoodPatch, Nest, Obstacle
 
@@ -52,10 +54,19 @@ def agent_portrayal(agent):
         return
     return portrayal
 
+def pheromone_agent_portrayal(agent):
+    return {}
 
-def propertylayer_portrayal(layer):
-    if layer.name == "pher_food":
-        return PropertyLayerStyle(color="blue", alpha=1.4, vmin=0, vmax=15, colorbar=True)
+
+layer_portrayal = {
+    "pher_food": {
+        "colormap": "viridis",
+        "alpha": 0.6,
+        "colorbar": True,
+        "vmin": 0,
+        "vmax": 15,
+    }
+}
 
 # Define grid size
 GRID_WIDTH = 50
@@ -102,35 +113,47 @@ initial_params["seed"] = int(initial_params["seed"])
 initial_model = ColonyModel(**initial_params)
 
 # Create the chart
-chart1 = make_plot_component(
-    ["ActiveAntPercentage"]
-)
-chart2 = make_plot_component(
-    ["FoodDelivered"]
-)
-chart3 = make_plot_component(
-    ["AntsAlive"]
-)
+chart1 = make_plot_component(["ActiveAntPercentage"])
+chart2 = make_plot_component(["FoodDelivered"])
+chart3 = make_plot_component(["AntsAlive"])
 
-# Create the visualization grid component
+# renderer = SpaceRenderer(model=initial_model, backend="matplotlib")
+# renderer.draw_agents(agent_portrayal)
+# renderer.draw_propertylayer(propertylayer_portrayal)
+
+def post_process(ax):
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xticks([], minor=True)
+    ax.set_yticks([], minor=True)
+
 # grid = make_space_component(
-#     agent_portrayal
+#     agent_portrayal=agent_portrayal,
+#     post_process=post_process,
+#     draw_grid=False
+# )
+#
+# pheromoneLayer = make_space_component(
+#     agent_portrayal=pheromone_agent_portrayal,
+#     propertylayer_portrayal=layer_portrayal,
+#     post_process=post_process,
+#     draw_grid=False
 # )
 
-renderer = SpaceRenderer(model=initial_model, backend="matplotlib")
-renderer.draw_agents(agent_portrayal)
-renderer.draw_propertylayer(propertylayer_portrayal)
+renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
+renderer_agents.draw_agents(agent_portrayal)
 
-# Create the server instance
+renderer_pheromone = SpaceRenderer(model=initial_model, backend="matplotlib")
+renderer_pheromone.draw_propertylayer(layer_portrayal)
+
+space_agents = create_space_component(renderer_agents)
+space_pheromone = create_space_component(renderer_pheromone)
+
 page = SolaraViz(
     model=initial_model,
-    renderer=renderer,
+    renderer=None,
     model_params=model_params,
-    components=[chart1, chart2, chart3], #type: ignore
+    components=[space_agents, space_pheromone , chart1], #type: ignore
     name="Cole & Cheshire (1996) MCA Model"
 )
-
-# solara looks for this one, and if it's not present it looks for the page variable
-# throws an error if more than 1 page is present, so this little trick should do the work
-# even though we dont have more than 1 page, it's better to leave it as is 
 app = page

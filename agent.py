@@ -236,7 +236,6 @@ class FoodPatch(mesa.Agent):
 
 class Nest(mesa.Agent):
     """The nest agent for the purpose of visualisation"""
-
     def __init__(self, uid, model):
         super().__init__(model)
         self.unique_id = uid

@@ -39,9 +39,7 @@ def get_ants_alive(model):
     ants_agents = model.agents.select(lambda agent: isinstance(agent, AntAgent))
     return len(ants_agents)
 
-
-class ColonyModel(mesa.Model):
-    """
+"""
     The main model, now holding the parameters from the paper.
     N - number of agents
     width - width of the grid
@@ -62,6 +60,7 @@ class ColonyModel(mesa.Model):
     possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
     """
 
+class ColonyModel(mesa.Model):
     def __init__(self, N, width, height, g, J_11, J_12, J_21, J_22, prob_spontaneous, pher_dec, pher_diff, pher_drop,
                  nfp, fpp, noise, sr, seed=None):
         def get_value(param):
@@ -72,10 +71,9 @@ class ColonyModel(mesa.Model):
                 return param.value
             return param
 
-        final_seed = get_value(seed)
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = Scenario.NOHUNGER  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
+        self.scenario = Scenario.FOOD  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -93,6 +91,8 @@ class ColonyModel(mesa.Model):
         self.max_dist = (width // 2 + height // 2)
         self.hunger_flag = True
         self.hunger_threshold = 80
+        final_seed = get_value(seed)
+
         if final_seed is not None:
             try:
                 final_seed = int(final_seed)
@@ -109,22 +109,22 @@ class ColonyModel(mesa.Model):
         self.pher_home_dict = {}
         self.running = True
 
-        # === Model Parameters from the Paper ===
-        # These are now guaranteed to be numbers
-        # (self.g, self.J_11, etc. were set above)
-        # ========================================
-        if self.scenario == Scenario.NOHUNGER:
+        # Scenarios ------------------------------------------
+        if self.scenario == Scenario.BASE:
             self.hunger_flag = False
-        elif self.scenario == Scenario.BASEA:
-            self.hunger_flag = True
             self.nfp = 0
-        elif self.scenario == Scenario.BASENHA:
-            i = 1
+        elif self.scenario == Scenario.FOOD:
+            self.hunger_flag = False
+        elif self.scenario == Scenario.HUNGER:
+            self.hunger_flag = True
         else:
+            self.hunger_flag = True
             self._make_obstacles(self.scenario, width, height)
+        # ----------------------------------------------------
 
         if not self.hunger_flag:
             self.hunger_threshold = np.inf
+
 
         self._scatter_food(self.nfp, 3)
         for i in range(width):

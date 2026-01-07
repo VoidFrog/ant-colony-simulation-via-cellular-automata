@@ -91,7 +91,7 @@ model_params = {
     "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),
     "pher_drop": Slider("Amount of phermone dropped per", 3.0, 0.5, 5.0, 0.5),
     "nfp": Slider("Number of food patches", 2, 1, 10, 1),
-    "fpp": Slider("Food per Patch", 10.0, 1.0, 20.0, 1.0),
+    "fpp": Slider("Food per Patch", 50.0, 1.0, 100.0, 1.0),
 }
 
 # This loop for initial_params

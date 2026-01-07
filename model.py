@@ -74,7 +74,7 @@ class ColonyModel(mesa.Model):
 
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = Scenario.HUNGER
+        self.scenario = Scenario.FOOD
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))

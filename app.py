@@ -68,8 +68,8 @@ layer_portrayal = {
 }
 
 # Define grid size
-GRID_WIDTH = 50
-GRID_HEIGHT = 50
+GRID_WIDTH = 30
+GRID_HEIGHT = 30
 
 # Define Model Parameters for Sliders
 model_params = {

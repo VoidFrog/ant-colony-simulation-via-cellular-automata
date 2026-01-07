@@ -181,10 +181,9 @@ class ColonyModel(mesa.Model):
         for _ in range(n_patches):
             # Randomize patch center
             cx, cy = self.random.randrange(W), self.random.randrange(H)
-            radius = self.random.randrange(1, 4)
             for x in range(W):
                 for y in range(H):
-                    if (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2 and not self.obstacles[cx][cy] != 0:
+                    if (x-cx==0 and y-cy==0) and not self.obstacles[cx][cy] != 0 and self.food[x,y]==0:
                         self.food[x, y] += self.fpp
 
         # eliminate food from nearby the nest

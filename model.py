@@ -166,7 +166,7 @@ class ColonyModel(mesa.Model):
             self.nest_pos = (width - 9 * width // 10, height - height // 10)
         if tname == "tunnel":
             self.obstacles = templates.tunnel
-            self.nest_pos = (41, 44)
+            self.nest_pos = (27, 27)
         for i in range(width):
             for j in range(height):
                 if self.obstacles[i][j] != 0 and (
@@ -181,6 +181,8 @@ class ColonyModel(mesa.Model):
         for _ in range(n_patches):
             # Randomize patch center
             cx, cy = self.random.randrange(W), self.random.randrange(H)
+            while self.obstacles[cx,cy] !=0:
+                cx, cy = self.random.randrange(W), self.random.randrange(H)
             for x in range(W):
                 for y in range(H):
                     if (x-cx==0 and y-cy==0) and not self.obstacles[cx][cy] != 0 and self.food[x,y]==0:

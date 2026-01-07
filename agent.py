@@ -132,7 +132,9 @@ class AntAgent(mesa.Agent):
         diff = self.colony.pher_food_layer.data[x, y] - current_density
 
         if not self.carrying:
-            if diff < 0:
+            if self.colony.food[x, y] > 0:
+                weight = 20.0
+            elif diff < 0:
                 weight = 10.0 ** (-6)
             elif diff == 0:
                 weight = 1.0

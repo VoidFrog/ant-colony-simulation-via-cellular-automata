@@ -1,6 +1,4 @@
 from typing import Any, Dict
-import mesa
-from mesa.examples.advanced.sugarscape_g1mt.app import propertylayer_portrayal
 
 from mesa.visualization import (
     SolaraViz, 
@@ -9,7 +7,7 @@ from mesa.visualization import (
     make_plot_component,
     make_space_component
 )
-from mesa.visualization.components import PropertyLayerStyle
+
 from mesa.visualization.solara_viz import create_space_component
 
 from solara import InputInt
@@ -54,14 +52,15 @@ def agent_portrayal(agent):
         return
     return portrayal
 
+
 def pheromone_agent_portrayal(agent):
     return {}
 
 
 layer_portrayal = {
     "pher_food": {
-        "colormap": "viridis",
-        "alpha": 0.6,
+        "colormap": "plasma",
+        "alpha": 1.0,
         "colorbar": True,
         "vmin": 0,
         "vmax": 15,
@@ -82,19 +81,17 @@ model_params = {
     "N": Slider("Number of Ants", 25, 10, 100, 1),
     "width": GRID_WIDTH,
     "height": GRID_HEIGHT,
-    "g": Slider("Gain (g)", 0.05, 0.0, 1.0, 0.05),#type: ignore
-    "prob_spontaneous": Slider("Spontaneous Activation Prob.", 0.01, 0.0, 0.1, 0.005),#type: ignore
-    "J_11": Slider("J_11 (Active on Active)", 1.0, 0.0, 2.0, 0.1),#type: ignore
-    "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),#type: ignore
-    "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),#type: ignore
-    "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),#type: ignore
-    "pher_dec": Slider("Pheromone Decay Rate", 0.1, 0.0, 1.0, 0.05),#type: ignore
-    "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),#type: ignore
-    "pher_drop": Slider("Amount of phermone dropped per", 1.0, 0.5, 3.0, 0.5),#type: ignore
-    "nfp": Slider("Number of food patches", 2, 1, 10, 1),#type: ignore
-    "fpp": Slider("Food per Patch", 10.0, 1.0, 20.0, 1.0),#type: ignore
-    "noise": Slider("Probability of random movement when not carrying food", 0.0, 0.0,0.5,0.01),#type: ignore
-    "sr": Slider("Sensing radius", 1.0, 1.0, 5.0, 1.0)#type: ignore
+    "g": Slider("Gain (g)", 0.05, 0.0, 1.0, 0.05),
+    "prob_spontaneous": Slider("Spontaneous Activation Prob.", 0.01, 0.0, 0.1, 0.005),
+    "J_11": Slider("J_11 (Active on Active)", 1.0, 0.0, 2.0, 0.1),
+    "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),
+    "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),
+    "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),
+    "pher_dec": Slider("Pheromone Decay Rate", 0.05, 0.0, 1.0, 0.05),
+    "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),
+    "pher_drop": Slider("Amount of phermone dropped per", 3.0, 0.5, 5.0, 0.5),
+    "nfp": Slider("Number of food patches", 2, 1, 10, 1),
+    "fpp": Slider("Food per Patch", 10.0, 1.0, 20.0, 1.0),
 }
 
 # This loop for initial_params
@@ -112,36 +109,27 @@ initial_params["seed"] = int(initial_params["seed"])
 # Create the first model instance
 initial_model = ColonyModel(**initial_params)
 
-# Create the chart
-chart1 = make_plot_component(["ActiveAntPercentage"])
-chart2 = make_plot_component(["FoodDelivered"])
-chart3 = make_plot_component(["AntsAlive"])
 
-# renderer = SpaceRenderer(model=initial_model, backend="matplotlib")
-# renderer.draw_agents(agent_portrayal)
-# renderer.draw_propertylayer(propertylayer_portrayal)
-
-def post_process(ax):
+def renderer_post_process(ax):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_xticks([], minor=True)
     ax.set_yticks([], minor=True)
 
-# grid = make_space_component(
-#     agent_portrayal=agent_portrayal,
-#     post_process=post_process,
-#     draw_grid=False
-# )
-#
-# pheromoneLayer = make_space_component(
-#     agent_portrayal=pheromone_agent_portrayal,
-#     propertylayer_portrayal=layer_portrayal,
-#     post_process=post_process,
-#     draw_grid=False
-# )
+    ax.set_xlim(-0.5, GRID_WIDTH - 0.5)
+    ax.set_ylim(-0.5, GRID_HEIGHT - 0.5)
+    # ax.set_aspect("equal")
+
+
+# Create the chart
+chart1 = make_plot_component(["ActiveAntPercentage"])
+chart2 = make_plot_component(["FoodDelivered"])
+chart3 = make_plot_component(["AntsAlive"])
 
 renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
 renderer_agents.draw_agents(agent_portrayal)
+renderer_agents.post_process = renderer_post_process
+
 
 renderer_pheromone = SpaceRenderer(model=initial_model, backend="matplotlib")
 renderer_pheromone.draw_propertylayer(layer_portrayal)
@@ -153,7 +141,7 @@ page = SolaraViz(
     model=initial_model,
     renderer=None,
     model_params=model_params,
-    components=[space_agents, space_pheromone , chart1], #type: ignore
+    components=[space_agents, space_pheromone],
     name="Cole & Cheshire (1996) MCA Model"
 )
 app = page

@@ -60,9 +60,10 @@ def get_ants_alive(model):
     possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
     """
 
+
 class ColonyModel(mesa.Model):
     def __init__(self, N, width, height, g, J_11, J_12, J_21, J_22, prob_spontaneous, pher_dec, pher_diff, pher_drop,
-                 nfp, fpp, noise, sr, seed=None):
+                 nfp, fpp, seed=None):
         def get_value(param):
             """Helper function to get value from a Solara element."""
             if hasattr(param, "kwargs") and "value" in param.kwargs:
@@ -73,7 +74,7 @@ class ColonyModel(mesa.Model):
 
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = Scenario.FOOD  # possible values: basenha (no obstacles, no hunger, no age, no food), base (no obstacles, with food), basea (no obstacles with age, but no food), baseah (no obstacles with food, hunger and age), rock (one rock generated), tunnel (nest inside a tunnel)
+        self.scenario = Scenario.FOOD
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -85,8 +86,6 @@ class ColonyModel(mesa.Model):
         self.pher_drop = float(get_value(pher_drop))
         self.nfp = int(get_value(nfp))
         self.fpp = float(get_value(fpp))
-        self.noise = float(get_value(noise))
-        self.sr = float(get_value(sr))
         self.nest_pos = (width // 2, height // 2)
         self.max_dist = (width // 2 + height // 2)
         self.hunger_flag = True

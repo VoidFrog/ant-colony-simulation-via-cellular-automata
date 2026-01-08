@@ -39,6 +39,7 @@ def get_ants_alive(model):
     ants_agents = model.agents.select(lambda agent: isinstance(agent, AntAgent))
     return len(ants_agents)
 
+
 """
     The main model, now holding the parameters from the paper.
     N - number of agents
@@ -52,8 +53,6 @@ def get_ants_alive(model):
     pher_drop - amount of phermone dropped by ants
     nfp - amount of food patches
     fpp - amount of food per patch
-    noise - probability of random movement when not carrying food
-    sr - sensing radius for agents
     flags - flags that determine whether or not additional model modifiers are used
     thresholds - threshold for both age and hunger
     scenario - scenarios for generating obstacles or condtions
@@ -63,7 +62,7 @@ def get_ants_alive(model):
 
 class ColonyModel(mesa.Model):
     def __init__(self, N, width, height, g, J_11, J_12, J_21, J_22, prob_spontaneous, pher_dec, pher_diff, pher_drop,
-                 nfp, fpp, seed=None):
+                 nfp, fpp, food_inf, seed=None):
         def get_value(param):
             """Helper function to get value from a Solara element."""
             if hasattr(param, "kwargs") and "value" in param.kwargs:
@@ -86,6 +85,7 @@ class ColonyModel(mesa.Model):
         self.pher_drop = float(get_value(pher_drop))
         self.nfp = int(get_value(nfp))
         self.fpp = float(get_value(fpp))
+        self.food_inf = int(get_value(food_inf))
         self.nest_pos = (width // 2, height // 2)
         self.max_dist = (width // 2 + height // 2)
         self.hunger_flag = True
@@ -123,7 +123,6 @@ class ColonyModel(mesa.Model):
 
         if not self.hunger_flag:
             self.hunger_threshold = np.inf
-
 
         self._scatter_food(self.nfp, 3)
         for i in range(width):
@@ -181,11 +180,11 @@ class ColonyModel(mesa.Model):
         for _ in range(n_patches):
             # Randomize patch center
             cx, cy = self.random.randrange(W), self.random.randrange(H)
-            while self.obstacles[cx,cy] !=0:
+            while self.obstacles[cx, cy] != 0:
                 cx, cy = self.random.randrange(W), self.random.randrange(H)
             for x in range(W):
                 for y in range(H):
-                    if (x-cx==0 and y-cy==0) and not self.obstacles[cx][cy] != 0 and self.food[x,y]==0:
+                    if (x - cx == 0 and y - cy == 0) and not self.obstacles[cx][cy] != 0 and self.food[x, y] == 0:
                         self.food[x, y] += self.fpp
 
         # eliminate food from nearby the nest
@@ -198,37 +197,31 @@ class ColonyModel(mesa.Model):
                 else:
                     self.food[x, y] = 0
 
-    def decay(self, arr):
-        arr *= (1.0 - self.pher_dec)
-        return arr
-
     """
     Functions that manage the behavior of the layer that is common for ants
     and represents pheromones that marks trail to food
     """
 
-    def decay_layer(self, layer):
-        layer.modify_cells(lambda x: x * (1.0 - self.pher_dec))
+    def decay(self, arr):
+        arr *= 0.9
+        return arr
 
-    def diffuse_layer(self, layer):
-        w, h = self.grid.width, self.grid.height
-        prev = layer.data.copy()
-        for i in range(w):
-            for j in range(h):
-                vals = [prev[i, j]] + \
-                       ([prev[i - 1, j]] if i > 0 else []) + \
-                       ([prev[i + 1, j]] if i < w - 1 else []) + \
-                       ([prev[i, j - 1]] if j > 0 else []) + \
-                       ([prev[i, j + 1]] if j < h - 1 else [])
-                avg = sum(vals) / len(vals)
-                result = (1 - self.pher_diff) * prev[i, j] + self.pher_diff * avg
-                layer.set_cell((i, j), result)
+    def diffuse_decay_layer(self, D=10.0, gamma=0.001, dt=0.001):
+        c = self.pher_food_layer.data.copy()
+        nx, ny = c.shape
 
-    def limit_value(self, layer):
-        layer.set_cells(15.0, lambda x: True if x > 15.0 else False)
+        for i in range(nx):
+            for j in range(ny):
+                center = c[i, j]
 
-    def clean_layer(self, layer):
-        layer.set_cells(0.0, lambda x: True if x < 0.05 else False)
+                up = c[i - 1, j] if i > 0 else c[i, j]
+                down = c[i + 1, j] if i < nx - 1 else c[i, j]
+                left = c[i, j - 1] if j > 0 else c[i, j]
+                right = c[i, j + 1] if j < ny - 1 else c[i, j]
+
+                laplacian = up + down + left + right - 4 * center
+                new_value = center + dt * (D * laplacian - gamma * center)
+                self.pher_food_layer.set_cell((i, j), new_value)
 
     def birth_agents(self):
         width, height = self.grid.width, self.grid.height
@@ -248,19 +241,19 @@ class ColonyModel(mesa.Model):
         """
         self.datacollector.collect(self)
 
-        # 1. All agents calculate their next state based on the current state.
+        self.diffuse_decay_layer(
+            D=self.pher_diff,
+            gamma=self.pher_dec,
+            dt=0.001
+        )
+
+        for k, v in self.pher_home_dict.items():
+            self.pher_home_dict[k] = self.decay(v)
+
         self.agents.do("step")
-        # 2. All agents apply their new state.
         self.agents.do("advance")
         if self.hunger_flag:
             self.birth_agents()
-        # 3. All pheromone layers apply their new state.
-        self.decay_layer(self.pher_food_layer)
-        self.diffuse_layer(self.pher_food_layer)
-        self.limit_value(self.pher_food_layer)
-        self.clean_layer(self.pher_food_layer)
-        for k, v in self.pher_home_dict.items():
-            self.pher_home_dict[k] = self.decay(v)
 
         # remove dead ants
         for agent in list(self.agents):

@@ -1,7 +1,6 @@
 from typing import Any, Dict
-
 from mesa.visualization import (
-    SolaraViz, 
+    SolaraViz,
     Slider,
     SpaceRenderer,
     make_plot_component,
@@ -9,10 +8,10 @@ from mesa.visualization import (
 )
 
 from mesa.visualization.solara_viz import create_space_component
-
 from solara import InputInt
 from model import ColonyModel
 from agent import AntAgent, FoodPatch, Nest, Obstacle
+from matplotlib.patches import Patch
 
 
 def agent_portrayal(agent):
@@ -21,7 +20,7 @@ def agent_portrayal(agent):
     Uses Matplotlib-compatible keywords.
     """
     portrayal: Dict[str, Any] = {"marker": "o"}
-    
+
     if isinstance(agent, AntAgent):
         if agent.is_dead:
             return {}
@@ -47,7 +46,7 @@ def agent_portrayal(agent):
     elif isinstance(agent, Nest):
         portrayal = {"marker": "s", "color": "#541608", "size": 100}
     elif isinstance(agent, Obstacle):
-        portrayal = {"marker": "s", "color": "#4A4A4A", "size":100}
+        portrayal = {"marker": "s", "color": "#4A4A4A", "size": 100}
     else:
         return
     return portrayal
@@ -87,11 +86,12 @@ model_params = {
     "J_12": Slider("J_12 (Inactive on Active)", 0.0, 0.0, 2.0, 0.1),
     "J_21": Slider("J_21 (Active on Inactive)", 0.0, 0.0, 2.0, 0.1),
     "J_22": Slider("J_22 (Inactive on Inactive)", 0.0, 0.0, 2.0, 0.1),
-    "pher_dec": Slider("Pheromone Decay Rate", 0.05, 0.0, 1.0, 0.05),
-    "pher_diff": Slider("Pheromone Diffusion Rate", 0.1, 0.0, 1.0, 0.05),
-    "pher_drop": Slider("Amount of phermone dropped per", 3.0, 0.5, 5.0, 0.5),
+    "pher_dec": Slider("Pheromone Decay Rate", 0.001, 0.0, 0.01, 0.001),
+    "pher_diff": Slider("Pheromone Diffusion Rate", 10.0, 5.0, 15.0, 1.0),
+    "pher_drop": Slider("Amount of phermone dropped per", 1.0, 0.5, 1.5, 0.1),
     "nfp": Slider("Number of food patches", 2, 1, 10, 1),
     "fpp": Slider("Food per Patch", 50.0, 1.0, 100.0, 1.0),
+    "food_inf": Slider("Toggle Infinite Food", 0, 0, 1, 1)
 }
 
 # This loop for initial_params
@@ -110,15 +110,32 @@ initial_params["seed"] = int(initial_params["seed"])
 initial_model = ColonyModel(**initial_params)
 
 
-def renderer_post_process(ax):
+def ants_post_process(ax):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_xticks([], minor=True)
     ax.set_yticks([], minor=True)
-
+    ax.set_title("Ants' movement", fontweight="bold")
     ax.set_xlim(-0.5, GRID_WIDTH - 0.5)
     ax.set_ylim(-0.5, GRID_HEIGHT - 0.5)
-    # ax.set_aspect("equal")
+
+    ant1 = Patch(color="#FF0000", label='foraging ant')
+    ant2 = Patch(color="#12D400", label='carrying ant')
+    nest = Patch(color="#541608", label='nest')
+    food = Patch(color="#337329", label='food source')
+    ax.legend(handles=[ant1, ant2, nest, food],
+              bbox_to_anchor=(0., -0.1, 1., .1),
+              loc='lower left',
+              ncols=4,
+              mode="expand",
+              borderaxespad=0.
+              )
+
+
+def pheromone_post_process(ax):
+    ax.set_ylabel("Position")
+    ax.set_xlabel("Position")
+    ax.set_title("Pheromone Distribution", fontweight="bold")
 
 
 # Create the chart
@@ -126,13 +143,15 @@ chart1 = make_plot_component(["ActiveAntPercentage"])
 chart2 = make_plot_component(["FoodDelivered"])
 chart3 = make_plot_component(["AntsAlive"])
 
+# Create agents renderer
 renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
 renderer_agents.draw_agents(agent_portrayal)
-renderer_agents.post_process = renderer_post_process
+renderer_agents.post_process = ants_post_process
 
-
+# Create pheromone layer renderer
 renderer_pheromone = SpaceRenderer(model=initial_model, backend="matplotlib")
 renderer_pheromone.draw_propertylayer(layer_portrayal)
+renderer_pheromone.post_process = pheromone_post_process
 
 space_agents = create_space_component(renderer_agents)
 space_pheromone = create_space_component(renderer_pheromone)

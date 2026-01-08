@@ -29,7 +29,7 @@ class AntAgent(mesa.Agent):
         self.is_dead = False
         # Start as not carrying food
         self.carrying = False
-        self.carrying_time = 0
+        self.current_food_source = None
         # Previous position
         self.previous_pos = None
 
@@ -64,9 +64,7 @@ class AntAgent(mesa.Agent):
         """
         (nx, ny) = self.colony.nest_pos
         (x, y) = pos
-        dx = abs(x - nx)
-        dy = abs(y - ny)
-        return dx + dy
+        return np.linalg.norm([x - nx, y - ny], 2)
 
     def get_interaction_sum(self):
         """
@@ -117,16 +115,9 @@ class AntAgent(mesa.Agent):
             self.move()
 
     def advance(self):
-        """
-        Apply the new activity level after all agents have 'stepped'.
-        This is the second phase of the SimultaneousActivation.
-        """
         self.activity_level = self.next_activity_level
 
     def objective(self, pos_next: Tuple[int, int], current_density) -> float:
-        """
-        A function to used to determine pathing based on available pheromones
-        """
         x, y = pos_next
         weight = 0.0
         diff = self.colony.pher_food_layer.data[x, y] - current_density
@@ -134,19 +125,31 @@ class AntAgent(mesa.Agent):
         if not self.carrying:
             if self.colony.food[x, y] > 0:
                 weight = 20.0
-            elif diff < 0:
-                weight = 10.0 ** (-6)
+            elif diff > 0:
+                weight = 1.0 + diff
             elif diff == 0:
                 weight = 1.0
             else:
-                weight = 1.0 + diff
+                weight = 1e-6
         else:
             weight += 1.0 * self.colony.pher_home_dict[self][x, y]
             weight += 2.0 * (self.dist_to_nest(self.pos) - self.dist_to_nest(pos_next))
         return weight
 
-    def exponential_decay(self, t):
-        return self.colony.pher_drop * np.exp(-0.1 * t)
+    def avg_pheromone_density(self, position):
+        tiles = list(self.colony.grid.get_neighborhood(position, moore=True, include_center=True))
+        avg = 0.0
+        for (x, y) in tiles:
+            avg += self.colony.pher_food_layer.data[x, y]
+        return avg / 9.0
+
+    def deposit_pheromone(self, A=1.0, sigma=1.0):
+        (x, y) = self.pos
+        (fx, fy) = self.current_food_source
+
+        dist2 = (x - fx) ** 2 + (y - fy) ** 2
+        amount = A * np.exp(-dist2 / sigma ** 2)
+        self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + amount)
 
     def move(self):
         cp = cast(Tuple[int, int], self.pos)
@@ -161,11 +164,14 @@ class AntAgent(mesa.Agent):
 
         if not self.carrying:
             self.hunger += 1
-            total_score = np.sum(score)
-            probability = [p / total_score for p in score]
-            indices = [i for i in range(len(score))]
-            index = np.random.choice(indices, None, True, probability)
-            next_pos = possible_steps[index]
+            if self.avg_pheromone_density(cp) > 1e-6:
+                total_score = np.sum(score)
+                probability = [p / total_score for p in score]
+                indices = [i for i in range(len(score))]
+                index = np.random.choice(indices, None, True, probability)
+                next_pos = possible_steps[index]
+            else:
+                next_pos = self.random.choice(possible_steps)
         else:
             best_move = np.max(score)
             for i in range(8):
@@ -180,23 +186,24 @@ class AntAgent(mesa.Agent):
 
         # picking up nearby food
         if not self.carrying and self.colony.food[x, y] > 0:
-            self.colony.food[x, y] -= 1
+            self.current_food_source = (x, y)
             self.carrying = True
             self.hunger = 0
-            for agent in self.colony.grid.get_cell_list_contents([next_pos]):
-                if isinstance(agent, FoodPatch):
-                    agent.amount = max(agent.amount - 1, 0)
+            if self.colony.food_inf == 0:
+                self.colony.food[x, y] -= 1
+                for agent in self.colony.grid.get_cell_list_contents([next_pos]):
+                    if isinstance(agent, FoodPatch):
+                        agent.amount = max(agent.amount - 1, 0)
 
         # delivering food to nest
         if self.carrying and ((x, y) == self.colony.nest_pos):
             self.colony.food_delivered += 1
+            self.current_food_source = None
             self.carrying = False
-            self.carrying_time = 0
 
         # dropping pheromones based on carrying status
         if self.carrying:
-            self.colony.pher_food_layer.modify_cell((x, y), lambda c: c + self.exponential_decay(self.carrying_time))
-            self.carrying_time += 1
+            self.deposit_pheromone(A=self.colony.pher_drop)
         else:
             self.colony.pher_home_dict[self][x, y] += self.colony.pher_drop
 

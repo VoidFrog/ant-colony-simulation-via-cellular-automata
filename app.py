@@ -45,8 +45,8 @@ def agent_portrayal(agent):
             portrayal["size"] = 100
     elif isinstance(agent, Nest):
         portrayal = {"marker": "s", "color": "#541608", "size": 100}
-    elif isinstance(agent, Obstacle):
-        portrayal = {"marker": "s", "color": "#4A4A4A", "size": 100}
+    # elif isinstance(agent, Obstacle):
+    #     portrayal = {"marker": "s", "color": "#4A4A4A", "size": 100}
     else:
         return
     return portrayal

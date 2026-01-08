@@ -3,7 +3,7 @@ import random
 import mesa
 import numpy as np
 import math
-from agent import AntAgent, Obstacle
+from agent import AntAgent #, Obstacle
 from agent import FoodPatch
 from agent import Nest
 from mesa.space import PropertyLayer

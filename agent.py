@@ -251,8 +251,8 @@ class Nest(mesa.Agent):
         self.unique_id = uid
 
 
-class Obstacle(mesa.Agent):
-    """The obstacle agent for the purpose of visualisation"""
-    def __init__(self, uid, model):
-        super().__init__(model)
-        self.unique_id = uid
+# class Obstacle(mesa.Agent):
+#     """The obstacle agent for the purpose of visualisation"""
+#     def __init__(self, uid, model):
+#         super().__init__(model)
+#         self.unique_id = uid

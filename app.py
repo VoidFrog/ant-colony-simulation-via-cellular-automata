@@ -134,9 +134,9 @@ def ants_post_process(ax):
     nest = Patch(color="#541608", label='nest')
     food = Patch(color="#337329", label='food source')
     ax.legend(handles=[ant1, ant2, nest, food],
-              bbox_to_anchor=(0., -0.1, 1., .1),
+              bbox_to_anchor=(0., -0.15, 1., .1),
               loc='lower left',
-              ncols=4,
+              ncols=2,
               mode="expand",
               borderaxespad=0.
               )
@@ -150,7 +150,7 @@ def pheromone_post_process(ax):
 
 def ants_alive_post_process(ax):
     ax.set_xlim(0, None)
-    ax.set_ylim(0, 200)
+    ax.set_ylim(0, 100)
     ax.set_title("Ants' Population", fontweight="bold")
 
 
@@ -166,7 +166,6 @@ renderer_pheromone.draw_propertylayer(pheromone_layer_portrayal)
 renderer_pheromone.post_process = pheromone_post_process
 # Create agents renderer
 renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
-renderer_agents.draw_structure(figsize=(10, 15))
 renderer_agents.draw_agents(agent_portrayal)
 renderer_agents.draw_propertylayer(obstacle_layer_portrayal)
 renderer_agents.post_process = ants_post_process
@@ -178,7 +177,7 @@ page = SolaraViz(
     model=initial_model,
     renderer=None,
     model_params=model_params,
-    components=[space_agents, chart3],
+    components=[space_agents, space_pheromone],
     name="Cole & Cheshire (1996) MCA Model"
 )
 app = page

@@ -73,7 +73,7 @@ class ColonyModel(mesa.Model):
 
         self.num_agents = int(get_value(N))
         self.uid = 0
-        self.scenario = Scenario.HUNGER
+        self.scenario = Scenario.TUNNEL
         self.g = float(get_value(g))
         self.J_11 = float(get_value(J_11))
         self.J_12 = float(get_value(J_12))
@@ -89,7 +89,7 @@ class ColonyModel(mesa.Model):
         self.nest_pos = (width // 2, height // 2)
         self.max_dist = (width // 2 + height // 2)
         self.hunger_flag = True
-        self.hunger_threshold = 80
+        self.hunger_threshold = 100
         final_seed = get_value(seed)
 
         if final_seed is not None:
@@ -104,7 +104,7 @@ class ColonyModel(mesa.Model):
         self.food = np.zeros((width, height), dtype=int)
         self.obstacles = np.zeros((width, height), dtype=int)
         self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=np.float64)
-        self.obstacles_layer = PropertyLayer("obstacles", width, height, 0.0, dtype=np.int32)
+        self.obstacles_layer = PropertyLayer("obstacles", width, height, 0, dtype=np.int32)
         self.grid.add_property_layer(self.pher_food_layer)
         self.grid.add_property_layer(self.obstacles_layer)
         self.pher_home_dict = {}
@@ -119,8 +119,8 @@ class ColonyModel(mesa.Model):
         elif self.scenario == Scenario.HUNGER:
             self.hunger_flag = True
         else:
-            self.hunger_flag = True
-            self._make_obstacles(self.scenario, width, height)
+            self.hunger_flag = False
+            self._make_obstacles(self.scenario)
         # ----------------------------------------------------
 
         if not self.hunger_flag:
@@ -156,11 +156,10 @@ class ColonyModel(mesa.Model):
                              "AntsAlive": get_ants_alive},
             agent_reporters={"ActivityLevel": "activity_level", "State": "state"})
 
-    def _make_obstacles(self, tname, width, height):
-        if tname == "rock":
+    def _make_obstacles(self, tname):
+        if tname == Scenario.ROCK:
             self.obstacles_layer.data = templates.dwayne
-            self.nest_pos = (width - 9 * width // 10, height - height // 10)
-        if tname == "tunnel":
+        if tname == Scenario.TUNNEL:
             self.obstacles_layer.data = templates.tunnel
             self.nest_pos = (27, 27)
 
@@ -168,7 +167,7 @@ class ColonyModel(mesa.Model):
         W, H = self.grid.width, self.grid.height
         for _ in range(n_patches):
             cx, cy = self.random.randrange(W), self.random.randrange(H)
-            while self.obstacles_layer.data[cx, cy] != 0 and self.food[cx, cy] == 0:
+            while self.obstacles_layer.data[cx][cy] != 0 and self.food[cx][cy] == 0:
                 cx, cy = self.random.randrange(W), self.random.randrange(H)
             self.food[cx, cy] += self.fpp
 

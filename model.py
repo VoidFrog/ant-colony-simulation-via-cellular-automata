@@ -127,12 +127,7 @@ class ColonyModel(mesa.Model):
             self.hunger_threshold = np.inf
 
         self._scatter_food(self.nfp, 3)
-        for i in range(width):
-            for j in range(height):
-                if self.obstacles[i][j] != 0 and self.food[i][j] != 0:
-                    self.food[i][j] = 0
 
-        # Create agents
         for i in range(self.num_agents):
             a = AntAgent(self.uid, self)
             self.pher_home_dict[a] = np.zeros((width, height), dtype=float)
@@ -163,27 +158,19 @@ class ColonyModel(mesa.Model):
 
     def _make_obstacles(self, tname, width, height):
         if tname == "rock":
-            self.obstacles = templates.dwayne
+            self.obstacles_layer.data = templates.dwayne
             self.nest_pos = (width - 9 * width // 10, height - height // 10)
         if tname == "tunnel":
-            self.obstacles = templates.tunnel
+            self.obstacles_layer.data = templates.tunnel
             self.nest_pos = (27, 27)
-        for i in range(width):
-            for j in range(height):
-                if self.obstacles[i][j] != 0:
-                    self.colony.obstacle_layer.modify_cell((i, j))
 
     def _scatter_food(self, n_patches, r):
         W, H = self.grid.width, self.grid.height
         for _ in range(n_patches):
-            # Randomize patch center
             cx, cy = self.random.randrange(W), self.random.randrange(H)
-            while self.obstacles[cx, cy] != 0:
+            while self.obstacles_layer.data[cx, cy] != 0 and self.food[cx, cy] == 0:
                 cx, cy = self.random.randrange(W), self.random.randrange(H)
-            for x in range(W):
-                for y in range(H):
-                    if (x - cx == 0 and y - cy == 0) and not self.obstacles[cx][cy] != 0 and self.food[x, y] == 0:
-                        self.food[x, y] += self.fpp
+            self.food[cx, cy] += self.fpp
 
         # eliminate food from nearby the nest
         nx, ny = self.nest_pos

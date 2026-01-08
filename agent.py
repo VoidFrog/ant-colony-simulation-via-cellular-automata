@@ -158,7 +158,7 @@ class AntAgent(mesa.Agent):
         # Getting neighbor tiles
         possible_steps = list(self.colony.grid.get_neighborhood(cp, moore=True, include_center=False))
         # Discarding tiles with obstacles
-        possible_steps = list([step for step in possible_steps if self.colony.obstacles[step[0]][step[1]] == 0])
+        possible_steps = list([step for step in possible_steps if self.colony.obstacles_layer.data[step[0]][step[1]] == 0])
         # calculating score for each tile
         score = [self.objective(m, self.colony.pher_food_layer.data[cp[0], cp[1]]) for m in possible_steps]
 

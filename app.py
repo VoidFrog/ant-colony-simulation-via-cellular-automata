@@ -10,7 +10,7 @@ from mesa.visualization import (
 from mesa.visualization.solara_viz import create_space_component
 from solara import InputInt
 from model import ColonyModel
-from agent import AntAgent, FoodPatch, Nest, Obstacle
+from agent import AntAgent, FoodPatch, Nest
 from matplotlib.patches import Patch
 
 
@@ -56,7 +56,7 @@ def pheromone_agent_portrayal(agent):
     return {}
 
 
-layer_portrayal = {
+pheromone_layer_portrayal = {
     "pher_food": {
         "colormap": "plasma",
         "alpha": 1.0,
@@ -65,6 +65,16 @@ layer_portrayal = {
         "vmax": 15,
     }
 }
+obstacle_layer_portrayal = {
+    "obstacles": {
+        "color": "gray",
+        "alpha": 1.0,
+        "colorbar": False,
+        "vmin": 0,
+        "vmax": 1,
+    }
+}
+
 
 # Define grid size
 GRID_WIDTH = 30
@@ -149,16 +159,17 @@ chart1 = make_plot_component(["ActiveAntPercentage"])
 chart2 = make_plot_component(["FoodDelivered"])
 chart3 = make_plot_component(["AntsAlive"], post_process=ants_alive_post_process)
 
-# Create agents renderer
-renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
-renderer_agents.draw_agents(agent_portrayal)
-renderer_agents.post_process = ants_post_process
-# renderer_agents.draw_propertylayer=
 
 # Create pheromone layer renderer
 renderer_pheromone = SpaceRenderer(model=initial_model, backend="matplotlib")
-renderer_pheromone.draw_propertylayer(layer_portrayal)
+renderer_pheromone.draw_propertylayer(pheromone_layer_portrayal)
 renderer_pheromone.post_process = pheromone_post_process
+# Create agents renderer
+renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
+renderer_agents.draw_structure(figsize=(10, 15))
+renderer_agents.draw_agents(agent_portrayal)
+renderer_agents.draw_propertylayer(obstacle_layer_portrayal)
+renderer_agents.post_process = ants_post_process
 
 space_agents = create_space_component(renderer_agents)
 space_pheromone = create_space_component(renderer_pheromone)

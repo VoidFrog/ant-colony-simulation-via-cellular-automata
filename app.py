@@ -147,6 +147,7 @@ chart3 = make_plot_component(["AntsAlive"])
 renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
 renderer_agents.draw_agents(agent_portrayal)
 renderer_agents.post_process = ants_post_process
+# renderer_agents.draw_propertylayer=
 
 # Create pheromone layer renderer
 renderer_pheromone = SpaceRenderer(model=initial_model, backend="matplotlib")

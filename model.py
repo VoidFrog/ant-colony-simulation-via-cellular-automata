@@ -104,7 +104,9 @@ class ColonyModel(mesa.Model):
         self.food = np.zeros((width, height), dtype=int)
         self.obstacles = np.zeros((width, height), dtype=int)
         self.pher_food_layer = PropertyLayer("pher_food", width, height, 0.0, dtype=np.float64)
+        self.obstacles_layer = PropertyLayer("obstacles", width, height, 0.0, dtype=np.int32)
         self.grid.add_property_layer(self.pher_food_layer)
+        self.grid.add_property_layer(self.obstacles_layer)
         self.pher_home_dict = {}
         self.running = True
 
@@ -168,12 +170,8 @@ class ColonyModel(mesa.Model):
             self.nest_pos = (27, 27)
         for i in range(width):
             for j in range(height):
-                if self.obstacles[i][j] != 0 and (
-                        self.obstacles[i - 1][j] == 0 or self.obstacles[i][j + 1] == 0 or self.obstacles[i + 1][
-                    j] == 0 or self.obstacles[i][j - 1] == 0 or self.obstacles[i + 1][j] == 0):
-                    obstacle = Obstacle(self.uid, self)
-                    self.grid.place_agent(obstacle, (i, j))
-                    self.uid += 1
+                if self.obstacles[i][j] != 0:
+                    self.colony.obstacle_layer.modify_cell((i, j))
 
     def _scatter_food(self, n_patches, r):
         W, H = self.grid.width, self.grid.height

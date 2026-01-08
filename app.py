@@ -138,10 +138,16 @@ def pheromone_post_process(ax):
     ax.set_title("Pheromone Distribution", fontweight="bold")
 
 
+def ants_alive_post_process(ax):
+    ax.set_xlim(0, None)
+    ax.set_ylim(0, 200)
+    ax.set_title("Ants' Population", fontweight="bold")
+
+
 # Create the chart
 chart1 = make_plot_component(["ActiveAntPercentage"])
 chart2 = make_plot_component(["FoodDelivered"])
-chart3 = make_plot_component(["AntsAlive"])
+chart3 = make_plot_component(["AntsAlive"], post_process=ants_alive_post_process)
 
 # Create agents renderer
 renderer_agents = SpaceRenderer(model=initial_model, backend="matplotlib")
@@ -160,7 +166,7 @@ page = SolaraViz(
     model=initial_model,
     renderer=None,
     model_params=model_params,
-    components=[space_agents, space_pheromone],
+    components=[space_agents, chart3],
     name="Cole & Cheshire (1996) MCA Model"
 )
 app = page

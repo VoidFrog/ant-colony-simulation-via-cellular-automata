@@ -236,6 +236,7 @@ class FoodPatch(mesa.Agent):
             self._regen_timer += 1
             if self._regen_timer == 120:
                 self.amount = self.max_amount
+                self.colony.food[self.pos[0], self.pos[1]] = self.max_amount
                 self._regen_timer = 0
                 self.depleted = False
         else:
